@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f7f8fc">
+<title>Ma CAA École — Version 1</title>
+<style>
+:root{--bg:#f7f8fc;--card:#fff;--ink:#25314d;--muted:#68738a;--line:#e5e9f2;--accent:#6657d9;--accent2:#eeeafd;--shadow:0 8px 24px rgba(49,57,90,.10)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+button,input{font:inherit}button{cursor:pointer}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:center;gap:12px}
+.logo{font-size:24px;font-weight:900;letter-spacing:-.5px}.logo span{color:var(--accent)}
+.profile{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:16px;padding:8px 12px;font-weight:800}
+.app{display:grid;grid-template-columns:235px 1fr;min-height:calc(100vh - 62px)}
+.sidebar{position:sticky;top:62px;height:calc(100vh - 62px);overflow:auto;padding:16px 12px;border-right:1px solid var(--line);background:#fff}
+.navbtn{width:100%;border:0;background:transparent;border-radius:16px;padding:13px 14px;margin-bottom:8px;text-align:left;font-weight:850;color:var(--ink);display:flex;align-items:center;gap:10px;font-size:16px}
+.navbtn.active{background:var(--accent2);color:#4e41b9}
+.main{padding:20px;min-width:0}.hero{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:16px}
+h1{font-size:28px;margin:0 0 4px}.subtitle{margin:0;color:var(--muted);font-weight:650}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 18px}
+.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;font-weight:800;color:var(--ink)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:14px}
+.card{border:1px solid var(--line);background:var(--card);border-radius:22px;min-height:150px;padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;text-align:center;transition:.12s transform,.12s box-shadow}
+.card:active{transform:scale(.98)}.card .emoji{font-size:44px}.card .big{font-size:42px;font-weight:950;line-height:1}.card .label{font-weight:900;font-size:17px}.card .small{color:var(--muted);font-weight:650;font-size:13px}
+.word-builder{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);border-radius:24px;padding:18px;margin-bottom:18px}
+.word-display{min-height:78px;border:2px dashed #d9d5fa;background:#faf9ff;border-radius:18px;padding:14px;display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;font-size:38px;font-weight:950;letter-spacing:3px}
+.word-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;justify-content:center}.action{border:0;border-radius:14px;padding:11px 15px;font-weight:850;background:var(--accent2);color:#4e41b9}.action.primary{background:var(--accent);color:#fff}
+.letter-bank{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:10px}.letter{min-height:72px;border:1px solid var(--line);background:#fff;border-radius:18px;font-size:28px;font-weight:950;box-shadow:0 4px 12px rgba(49,57,90,.07)}
+.notice{padding:14px 16px;background:#fff8df;border:1px solid #f4e2a0;border-radius:16px;color:#725a00;font-weight:700;margin-bottom:16px}
+.footer{padding:26px 8px;text-align:center;color:#8992a8;font-size:12px;font-weight:700}
+@media(max-width:760px){.app{grid-template-columns:1fr}.sidebar{position:sticky;top:61px;z-index:15;height:auto;display:flex;overflow:auto;gap:8px;padding:10px;border-right:0;border-bottom:1px solid var(--line)}.navbtn{width:auto;white-space:nowrap;margin:0;padding:10px 12px}.main{padding:14px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.card{min-height:135px}}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="logo">🎒 Ma CAA <span>École</span></div><div class="profile">👦 Élève 1</div></header>
+<div class="app">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main">
+    <div class="hero"><div><h1 id="title"></h1><p class="subtitle" id="subtitle"></p></div></div>
+    <div id="content"></div>
+    <div class="footer">Ma CAA École — Version 1 • application indépendante de Ma CAA</div>
+  </main>
+</div>
+<script>
+"use strict";
+const STORE_PREFIX="ma-caa-ecole-v1-";
+const LETTERS=[
+ {l:"A",name:"a",sound:"a",hint:"comme dans avion"},{l:"B",name:"bé",sound:"b",hint:"comme dans bateau"},
+ {l:"C",name:"cé",sound:"k",hint:"son principal : k"},{l:"D",name:"dé",sound:"d",hint:"comme dans domino"},
+ {l:"E",name:"e",sound:"e",hint:"comme dans petit"},{l:"F",name:"effe",sound:"fff",hint:"comme dans fleur"},
+ {l:"G",name:"gé",sound:"g",hint:"son principal : g"},{l:"H",name:"ache",sound:"",hint:"souvent muet"},
+ {l:"I",name:"i",sound:"i",hint:"comme dans île"},{l:"J",name:"ji",sound:"j",hint:"comme dans jardin"},
+ {l:"K",name:"ka",sound:"k",hint:"comme dans kiwi"},{l:"L",name:"elle",sound:"lll",hint:"comme dans lune"},
+ {l:"M",name:"emme",sound:"mmm",hint:"comme dans maman"},{l:"N",name:"enne",sound:"nnn",hint:"comme dans nez"},
+ {l:"O",name:"o",sound:"o",hint:"comme dans orange"},{l:"P",name:"pé",sound:"p",hint:"comme dans papa"},
+ {l:"Q",name:"ku",sound:"k",hint:"comme dans quatre"},{l:"R",name:"erre",sound:"rrr",hint:"comme dans roue"},
+ {l:"S",name:"esse",sound:"sss",hint:"comme dans soleil"},{l:"T",name:"té",sound:"t",hint:"comme dans tomate"},
+ {l:"U",name:"u",sound:"u",hint:"comme dans lune"},{l:"V",name:"vé",sound:"vvv",hint:"comme dans vélo"},
+ {l:"W",name:"double vé",sound:"w",hint:"selon les mots"},{l:"X",name:"ix",sound:"ks",hint:"comme dans taxi"},
+ {l:"Y",name:"i grec",sound:"i",hint:"comme dans stylo"},{l:"Z",name:"zède",sound:"zzz",hint:"comme dans zoo"}];
+
+const VOCAB={
+ "École":[["🎒","cartable"],["✏️","crayon"],["📖","livre"],["📓","cahier"],["✂️","ciseaux"],["📏","règle"],["🧴","colle"],["🖍️","feutre"],["🏫","école"],["🪑","chaise"]],
+ "Halloween":[["🎃","citrouille"],["👻","fantôme"],["🧙","sorcière"],["🦇","chauve-souris"],["🕷️","araignée"],["🍬","bonbon"],["🧛","vampire"],["💀","squelette"]],
+ "Noël":[["🎄","sapin"],["🎅","Père Noël"],["🎁","cadeau"],["⭐","étoile"],["🔔","cloche"],["☃️","bonhomme de neige"],["🦌","renne"],["❄️","neige"]],
+ "Automne":[["🍂","feuille"],["🌰","châtaigne"],["🍄","champignon"],["🌧️","pluie"],["☂️","parapluie"],["🐿️","écureuil"]],
+ "Hiver":[["❄️","neige"],["☃️","bonhomme de neige"],["🧣","écharpe"],["🧤","gants"],["🥶","froid"],["⛷️","ski"]],
+ "Printemps":[["🌷","tulipe"],["🌼","fleur"],["🐝","abeille"],["🦋","papillon"],["🌦️","averse"],["🌱","pousse"]],
+ "Été":[["☀️","soleil"],["🏖️","plage"],["🍦","glace"],["🕶️","lunettes de soleil"],["🏊","piscine"],["🍉","pastèque"]]
+};
+
+const CONSIGNES=[["⭕","Entoure"],["❌","Barre"],["🎨","Colorie"],["🔗","Relie"],["✂️","Découpe"],["🧴","Colle"],["✍️","Écris"],["📖","Lis"],["👂","Écoute"],["👀","Regarde"],["➖","Souligne"],["🔢","Compte"],["📦","Range"],["✅","Coche"],["🖌️","Dessine"]];
+const CATS=[["alphabet","🔤","Alphabet","Nom ou son des lettres"],["writing","✍️","Écriture","Composer et écouter un mot"],["vocab","🖼️","Vocabulaire","Des mots classés par thèmes"],["numbers","🔢","Les nombres","Reconnaître, nommer et compter"],["instructions","📋","Les consignes","Comprendre les consignes scolaires"]];
+let state={cat:"alphabet",alphabetMode:"name",vocabTheme:"École",word:""};
+
+function speak(text,rate=.9){if(!text)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="fr-FR";u.rate=rate;speechSynthesis.speak(u)}catch(e){}}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function renderSidebar(){const box=document.getElementById("sidebar");box.innerHTML="";CATS.forEach(([id,icon,name])=>{const b=document.createElement("button");b.className="navbtn"+(state.cat===id?" active":"");b.innerHTML=`<span>${icon}</span><span>${name}</span>`;b.onclick=()=>{state.cat=id;render()};box.appendChild(b)})}
+function setHead(name,sub){document.getElementById("title").textContent=name;document.getElementById("subtitle").textContent=sub}
+function card(icon,label,small,onClick,big=false){const d=document.createElement("button");d.className="card";d.innerHTML=`<div class="${big?"big":"emoji"}">${esc(icon)}</div><div class="label">${esc(label)}</div>${small?`<div class="small">${esc(small)}</div>`:""}`;d.onclick=onClick;return d}
+function tabs(names,current,onChoose){const d=document.createElement("div");d.className="tabs";names.forEach(n=>{const b=document.createElement("button");b.className="tab"+(n===current?" active":"");b.textContent=n;b.onclick=()=>onChoose(n);d.appendChild(b)});return d}
+
+function renderAlphabet(root){
+ setHead("Alphabet","Choisir si l'enfant entend le nom de la lettre ou le son qu'elle fait.");
+ root.appendChild(tabs(["Nom des lettres","Son des lettres"],state.alphabetMode==="name"?"Nom des lettres":"Son des lettres",n=>{state.alphabetMode=n==="Nom des lettres"?"name":"sound";render()}));
+ const note=document.createElement("div");note.className="notice";note.textContent=state.alphabetMode==="name"?"Ici, un clic sur M dit « ème » : on travaille le nom de la lettre.":"Ici, un clic sur M fait « mmm » : on travaille le son de la lettre.";root.appendChild(note);
+ const g=document.createElement("div");g.className="grid";LETTERS.forEach(x=>{const spoken=state.alphabetMode==="name"?x.name:x.sound;g.appendChild(card(x.l,x.l,state.alphabetMode==="name"?"Nom de la lettre":x.hint,()=>speak(spoken),true))});root.appendChild(g)
+}
+function renderWriting(root){
+ setHead("Écriture","L'enfant compose un mot avec les lettres. Chaque lettre produit son son.");
+ const w=document.createElement("div");w.className="word-builder";const display=document.createElement("div");display.className="word-display";display.textContent=state.word||"…";w.appendChild(display);
+ const actions=document.createElement("div");actions.className="word-actions";
+ const read=document.createElement("button");read.className="action primary";read.textContent="🔊 Lire le mot";read.onclick=()=>speak(state.word||"");
+ const back=document.createElement("button");back.className="action";back.textContent="⌫ Effacer une lettre";back.onclick=()=>{state.word=state.word.slice(0,-1);render()};
+ const clear=document.createElement("button");clear.className="action";clear.textContent="🗑️ Effacer tout";clear.onclick=()=>{state.word="";render()};
+ actions.append(read,back,clear);w.appendChild(actions);root.appendChild(w);
+ const note=document.createElement("div");note.className="notice";note.textContent="Quand l'enfant choisit une lettre, l'application prononce son son. « Lire le mot » prononce ensuite le mot entier.";root.appendChild(note);
+ const bank=document.createElement("div");bank.className="letter-bank";LETTERS.forEach(x=>{const b=document.createElement("button");b.className="letter";b.textContent=x.l;b.onclick=()=>{state.word+=x.l.toLowerCase();speak(x.sound);render()};bank.appendChild(b)});root.appendChild(bank)
+}
+function renderVocab(root){setHead("Vocabulaire","Choisir un thème puis toucher une image pour entendre le mot.");root.appendChild(tabs(Object.keys(VOCAB),state.vocabTheme,n=>{state.vocabTheme=n;render()}));const g=document.createElement("div");g.className="grid";VOCAB[state.vocabTheme].forEach(([em,word])=>g.appendChild(card(em,word,"",()=>speak(word))));root.appendChild(g)}
+function renderNumbers(root){setHead("Les nombres","Toucher un nombre pour l'entendre.");const g=document.createElement("div");g.className="grid";for(let i=0;i<=20;i++){const dots=i<=10&&i>0?"● ".repeat(i).trim():(i===0?"aucune quantité":"");g.appendChild(card(String(i),String(i),dots,()=>speak(String(i)),true))}root.appendChild(g)}
+function renderInstructions(root){setHead("Les consignes","Toucher une consigne pour l'entendre.");const g=document.createElement("div");g.className="grid";CONSIGNES.forEach(([em,w])=>g.appendChild(card(em,w,"",()=>speak(w))));root.appendChild(g)}
+function render(){renderSidebar();const root=document.getElementById("content");root.innerHTML="";if(state.cat==="alphabet")renderAlphabet(root);if(state.cat==="writing")renderWriting(root);if(state.cat==="vocab")renderVocab(root);if(state.cat==="numbers")renderNumbers(root);if(state.cat==="instructions")renderInstructions(root)}
+render();
+</script>
+</body>
+</html>
