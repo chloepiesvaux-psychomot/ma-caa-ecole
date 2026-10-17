@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#f7f8fc">
-<title>Ma CAA École — Version 1</title>
+<title>Ma CAA École — Version 2 bêta 2</title>
 <style>
 :root{--bg:#f7f8fc;--card:#fff;--ink:#25314d;--muted:#68738a;--line:#e5e9f2;--accent:#6657d9;--accent2:#eeeafd;--shadow:0 8px 24px rgba(49,57,90,.10)}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
@@ -32,16 +32,19 @@ h1{font-size:28px;margin:0 0 4px}.subtitle{margin:0;color:var(--muted);font-weig
 .notice{padding:14px 16px;background:#fff8df;border:1px solid #f4e2a0;border-radius:16px;color:#725a00;font-weight:700;margin-bottom:16px}
 .footer{padding:26px 8px;text-align:center;color:#8992a8;font-size:12px;font-weight:700}
 @media(max-width:760px){.app{grid-template-columns:1fr}.sidebar{position:sticky;top:61px;z-index:15;height:auto;display:flex;overflow:auto;gap:8px;padding:10px;border-right:0;border-bottom:1px solid var(--line)}.navbtn{width:auto;white-space:nowrap;margin:0;padding:10px 12px}.main{padding:14px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.card{min-height:135px}}
+
+[hidden]{display:none!important}.headtools{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}.smallbtn{background:white;border:1px solid var(--line);border-radius:12px;padding:9px 12px;font-weight:800;color:var(--ink)}.landing{max-width:940px;margin:48px auto;padding:0 18px;text-align:center}.landing h1{font-size:36px}.search{width:100%;padding:16px;border:2px solid #dce3f2;border-radius:16px;font-size:17px;margin:22px 0 18px}.profiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:15px}.profiletile{border:2px solid #dfe5f2;background:#fff;padding:24px 8px;border-radius:23px;min-height:166px;box-shadow:var(--shadow);font-size:17px;font-weight:800;overflow-wrap:anywhere}.avatar{width:79px;height:79px;border-radius:50%;background:#edf2ff;display:flex;align-items:center;justify-content:center;color:#304877;font-weight:900;font-size:27px;margin:0 auto 14px}.editor{padding:18px;background:white;border:1px solid var(--line);border-radius:20px;margin:14px 0}.editor h2{margin:0 0 14px}.fields{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0}.fields input,.fields select{padding:10px;border:1px solid #d5dbea;border-radius:10px;max-width:100%;min-width:120px}.editrow{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px;border-bottom:1px solid var(--line)}.editrow button{margin:2px}.subheading{font-size:20px;font-weight:850;margin:20px 0 10px}.imageicon{max-height:70px;max-width:80px;object-fit:contain}.modepill{padding:8px;background:var(--accent2);border-radius:12px;font-weight:800}.helper{color:var(--muted);font-size:14px}.danger{color:#a42f3d}.right{margin-left:auto}
+@media(max-width:760px){.landing{margin-top:24px}.landing h1{font-size:27px}.headtools{gap:3px}.smallbtn{padding:8px;font-size:12px}.profiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
-<header class="topbar"><div class="logo">🎒 Ma CAA <span>École</span></div><div class="profile">👦 Élève 1</div></header>
-<div class="app">
+<header class="topbar"><div class="logo">🎒 Ma CAA <span>École</span></div><div id="headtools" class="headtools"></div></header><section id="landing" class="landing"></section>
+<div class="app" id="workspace" hidden>
   <aside class="sidebar" id="sidebar"></aside>
   <main class="main">
     <div class="hero"><div><h1 id="title"></h1><p class="subtitle" id="subtitle"></p></div></div>
     <div id="content"></div>
-    <div class="footer">Ma CAA École — Version 1 • application indépendante de Ma CAA</div>
+    <div class="footer">Ma CAA École — Version 2 bêta 2 • indépendante de Ma CAA</div>
   </main>
 </div>
 <script>
@@ -73,12 +76,12 @@ const VOCAB={
 };
 
 const CONSIGNES=[["⭕","Entoure"],["❌","Barre"],["🎨","Colorie"],["🔗","Relie"],["✂️","Découpe"],["🧴","Colle"],["✍️","Écris"],["📖","Lis"],["👂","Écoute"],["👀","Regarde"],["➖","Souligne"],["🔢","Compte"],["📦","Range"],["✅","Coche"],["🖌️","Dessine"]];
-const CATS=[["alphabet","🔤","Alphabet","Nom ou son des lettres"],["writing","✍️","Écriture","Composer et écouter un mot"],["vocab","🖼️","Vocabulaire","Des mots classés par thèmes"],["numbers","🔢","Les nombres","Reconnaître, nommer et compter"],["instructions","📋","Les consignes","Comprendre les consignes scolaires"]];
+let CATS=[["alphabet","🔤","Alphabet","Nom ou son des lettres"],["writing","✍️","Écriture","Composer et écouter un mot"],["vocab","🖼️","Vocabulaire","Des mots classés par thèmes"],["numbers","🔢","Les nombres","Reconnaître, nommer et compter"],["instructions","📋","Les consignes","Comprendre les consignes scolaires"]];
 let state={cat:"alphabet",alphabetMode:"name",vocabTheme:"École",word:""};
 
 function speak(text,rate=.9){if(!text)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="fr-FR";u.rate=rate;speechSynthesis.speak(u)}catch(e){}}
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
-function renderSidebar(){const box=document.getElementById("sidebar");box.innerHTML="";CATS.forEach(([id,icon,name])=>{const b=document.createElement("button");b.className="navbtn"+(state.cat===id?" active":"");b.innerHTML=`<span>${icon}</span><span>${name}</span>`;b.onclick=()=>{state.cat=id;render()};box.appendChild(b)})}
+function renderSidebar(){const box=document.getElementById("sidebar");box.innerHTML="";if(activeProfile){const f=button("⭐ Favoris",()=>{state.cat="__favorites";render()},"navbtn"+(state.cat==="__favorites"?" active":""));box.append(f)}CATS.filter(([id])=>visible(id,"cat")).forEach(([id,icon,name])=>{const b=document.createElement("button");b.className="navbtn"+(state.cat===id?" active":"");b.innerHTML=`<span>${icon}</span><span>${name}</span>`;b.onclick=()=>{state.cat=id;render()};box.appendChild(b)})}
 function setHead(name,sub){document.getElementById("title").textContent=name;document.getElementById("subtitle").textContent=sub}
 function card(icon,label,small,onClick,big=false){const d=document.createElement("button");d.className="card";d.innerHTML=`<div class="${big?"big":"emoji"}">${esc(icon)}</div><div class="label">${esc(label)}</div>${small?`<div class="small">${esc(small)}</div>`:""}`;d.onclick=onClick;return d}
 function tabs(names,current,onChoose){const d=document.createElement("div");d.className="tabs";names.forEach(n=>{const b=document.createElement("button");b.className="tab"+(n===current?" active":"");b.textContent=n;b.onclick=()=>onChoose(n);d.appendChild(b)});return d}
@@ -103,8 +106,84 @@ function renderWriting(root){
 function renderVocab(root){setHead("Vocabulaire","Choisir un thème puis toucher une image pour entendre le mot.");root.appendChild(tabs(Object.keys(VOCAB),state.vocabTheme,n=>{state.vocabTheme=n;render()}));const g=document.createElement("div");g.className="grid";VOCAB[state.vocabTheme].forEach(([em,word])=>g.appendChild(card(em,word,"",()=>speak(word))));root.appendChild(g)}
 function renderNumbers(root){setHead("Les nombres","Toucher un nombre pour l'entendre.");const g=document.createElement("div");g.className="grid";for(let i=0;i<=20;i++){const dots=i<=10&&i>0?"● ".repeat(i).trim():(i===0?"aucune quantité":"");g.appendChild(card(String(i),String(i),dots,()=>speak(String(i)),true))}root.appendChild(g)}
 function renderInstructions(root){setHead("Les consignes","Toucher une consigne pour l'entendre.");const g=document.createElement("div");g.className="grid";CONSIGNES.forEach(([em,w])=>g.appendChild(card(em,w,"",()=>speak(w))));root.appendChild(g)}
-function render(){renderSidebar();const root=document.getElementById("content");root.innerHTML="";if(state.cat==="alphabet")renderAlphabet(root);if(state.cat==="writing")renderWriting(root);if(state.cat==="vocab")renderVocab(root);if(state.cat==="numbers")renderNumbers(root);if(state.cat==="instructions")renderInstructions(root)}
-render();
+function render(){if(!activeProfile)return;renderSidebar();const root=document.getElementById("content");root.innerHTML="";if(state.cat==="alphabet")renderAlphabet(root);if(state.cat==="writing")renderWriting(root);if(state.cat==="vocab")renderVocab(root);if(state.cat==="numbers")renderNumbers(root);if(state.cat==="instructions")renderInstructions(root);renderExtras(root)}
+
+// Données propres à Ma CAA École : aucune lecture ni écriture dans Ma CAA.
+const SCHOOL_KEY='ma-caa-ecole-v2-profiles-data';
+const defaultBase=()=>({categories:CATS.map(([id,icon,name,desc])=>({id,icon,name,desc,children:[]})),items:[],overrides:{}});
+let db,activeProfile=null,mode='student',editCategory='alphabet',profileQuery='',editing=false;
+const uid=()=> 'id'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+function persist(){try{localStorage.setItem(SCHOOL_KEY,JSON.stringify(db))}catch(e){alert('Impossible de sauvegarder : espace de stockage saturé. Réduis les images.')}}
+function initSchool(){
+ try{db=JSON.parse(localStorage.getItem(SCHOOL_KEY)||'null')}catch(e){}
+ if(!db||!Array.isArray(db.profiles)||!db.base)db={profiles:[],base:defaultBase(),settings:{}};
+ if(!Array.isArray(db.base.categories))db.base=defaultBase();
+ db.base.items ||= []; db.base.overrides ||= {};db.settings ||= {};
+ CATS=db.base.categories.map(c=>[c.id,c.icon,c.name,c.desc]);
+ showLanding();
+}
+function $id(id){return document.getElementById(id)}
+function button(title,fn,cls='smallbtn'){const b=document.createElement('button');b.className=cls;b.textContent=title;b.onclick=fn;return b}
+function node(tag,txt,cls){const el=document.createElement(tag);if(txt!=null)el.textContent=txt;if(cls)el.className=cls;return el}
+function field(val='',placeholder=''){const i=node('input');i.value=val;i.placeholder=placeholder;return i}
+function selection(choices,value){const el=node('select');choices.forEach(([v,t])=>{const o=node('option',t);o.value=v;el.append(o)});el.value=value;return el}
+function active(){return db.profiles.find(p=>p.id===activeProfile)}
+function extra(){const p=active();if(p){p.custom ||= [];p.hidden ||= [];p.modified ||= {};p.favorites ||= [];p.order ||= {};}return p}
+function visible(id,kind){const p=extra();return !p||!(p.hidden||[]).includes(kind+':'+id)}
+function toggleVisible(id,kind){const p=extra();if(!p)return;const k=kind+':'+id;if(p.hidden.includes(k))p.hidden=p.hidden.filter(x=>x!==k);else p.hidden.push(k);persist();openMode()}
+function showLanding(){activeProfile=null;mode='student';$id('workspace').hidden=true;$id('landing').hidden=false;$id('headtools').replaceChildren();const root=$id('landing');root.replaceChildren();root.append(node('h1','Ma CAA École'),node('p','Qui utilise l’application ?'));
+ const search=field(profileQuery,'🔎 Rechercher un profil…');search.className='search';root.append(search);
+ const results=node('div',null,'profiles');root.append(results);
+ function draw(){results.replaceChildren();const q=search.value.trim().toLocaleLowerCase('fr');const found=db.profiles.filter(p=>p.name.toLocaleLowerCase('fr').includes(q));found.forEach(p=>{const b=button('',()=>selectProfile(p.id),'profiletile');b.append(node('div',p.avatar||p.name.trim().split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase(),'avatar'),node('div',p.name));results.append(b)});if(!found.length)results.append(node('p','Aucun profil. Utilise « Administration » pour en créer un.','helper'))}
+ search.oninput=()=>{profileQuery=search.value;draw()};draw();
+ const admin=button('⚙️ Administration',()=>enterAdmin(true));admin.style.marginTop='25px';root.append(admin);
+}
+function selectProfile(id){activeProfile=id;mode='student';state.cat=db.base.categories[0]?.id||'alphabet';$id('landing').hidden=true;$id('workspace').hidden=false;openMode()}
+function enterAdmin(fromHome=false){const pin=db.settings.adminPin;if(pin&&prompt('Code Administrateur')!==pin)return;mode='admin';if(fromHome){activeProfile=null;$id('landing').hidden=true;$id('workspace').hidden=false}openMode()}
+function enterTeacher(){if(!activeProfile)return;const pin=db.settings.teacherPin;if(pin&&prompt('Code Enseignant')!==pin)return;mode='teacher';openMode()}
+function openMode(){const h=$id('headtools');h.replaceChildren();if(activeProfile)h.append(node('span',active().name,'modepill'));
+ h.append(button('🏠 Profils',showLanding));if(activeProfile){h.append(button('👦 Élève',()=>{mode='student';openMode()}));h.append(button('👩‍🏫 Enseignant',enterTeacher))}h.append(button('⚙️ Admin',()=>enterAdmin(false)));
+ $id('sidebar').hidden=mode!=='student';$id('workspace').style.gridTemplateColumns=mode==='student'?'':'1fr';
+ if(mode==='student'){render();return}const root=$id('content');root.replaceChildren();
+ if(mode==='admin')renderAdmin(root);else renderTeacher(root);
+}
+function box(root,title,help){const b=node('section',null,'editor');b.append(node('h2',title));if(help)b.append(node('p',help,'helper'));root.append(b);return b}
+function row(parent,...parts){const r=node('div',null,'fields');r.append(...parts);parent.append(r);return r}
+function syncCats(){CATS=db.base.categories.map(c=>[c.id,c.icon,c.name,c.desc]);persist()}
+function renderAdmin(root){setHead('Mode Administrateur','Gestion de la base commune et des profils.');
+ let b=box(root,'Profils','Chaque profil hérite de la base commune. Il conserve ses adaptations personnelles.');
+ const name=field('','Nom du profil (classe ou élève)');const avatar=field('','Emoji facultatif');row(b,name,avatar,button('➕ Créer le profil',()=>{if(!name.value.trim())return alert('Indique un nom.');db.profiles.push({id:uid(),name:name.value.trim(),avatar:avatar.value.trim().slice(0,5),custom:[],hidden:[],modified:{},favorites:[],order:{}});persist();renderAdmin(rootReset())}));
+ db.profiles.forEach(p=>{const r=node('div',null,'editrow');r.append(node('strong',(p.avatar||'👤')+' '+p.name));r.append(button('Renommer',()=>{const x=prompt('Nouveau nom',p.name);if(x?.trim()){p.name=x.trim();persist();renderAdmin(rootReset())}}),button('Ouvrir',()=>selectProfile(p.id)),button('Supprimer',()=>{if(confirm('Supprimer définitivement le profil '+p.name+' et ses personnalisations ?')){db.profiles=db.profiles.filter(x=>x.id!==p.id);if(activeProfile===p.id)activeProfile=null;persist();renderAdmin(rootReset())}}));b.append(r)});
+ b=box(root,'Catégories et sous-catégories','Tu peux tout renommer, déplacer ou supprimer. Les personnalisations existantes sont conservées lorsque les identifiants ne changent pas.');
+ const nm=field('','Nouvelle catégorie'),ico=field('📚','Emoji');row(b,nm,ico,button('Ajouter une catégorie',()=>{if(!nm.value.trim())return;db.base.categories.push({id:uid(),name:nm.value.trim(),icon:ico.value||'📚',desc:'',children:[]});syncCats();renderAdmin(rootReset())}));
+ db.base.categories.forEach((c,ix)=>{const r=node('div',null,'editrow');r.append(node('strong',c.icon+' '+c.name));r.append(button('Modifier',()=>{const n=prompt('Nom',c.name);if(n===null)return;const i=prompt('Emoji',c.icon);if(n.trim()){c.name=n.trim();c.icon=i||'📚';syncCats();renderAdmin(rootReset())}}),button('↑',()=>{if(ix){[db.base.categories[ix-1],db.base.categories[ix]]=[c,db.base.categories[ix-1]];syncCats();renderAdmin(rootReset())}}),button('↓',()=>{if(ix<db.base.categories.length-1){[db.base.categories[ix+1],db.base.categories[ix]]=[c,db.base.categories[ix+1]];syncCats();renderAdmin(rootReset())}}),button('Sous-catégorie +',()=>{const n=prompt('Nom de la sous-catégorie');if(n?.trim()){c.children ||= [];c.children.push({id:uid(),name:n.trim()});persist();renderAdmin(rootReset())}}),button('Supprimer',()=>{if(confirm('Supprimer cette catégorie, ses sous-catégories et ses pictogrammes personnalisés de la base ?')){db.base.categories=db.base.categories.filter(x=>x.id!==c.id);db.base.items=db.base.items.filter(x=>x.cat!==c.id);syncCats();renderAdmin(rootReset())}}));b.append(r);
+ (c.children||[]).forEach(sc=>{const sr=node('div',null,'editrow');sr.style.paddingLeft='30px';sr.append(node('span','↳ '+sc.name),button('Renommer',()=>{const n=prompt('Nom',sc.name);if(n?.trim()){sc.name=n.trim();persist();renderAdmin(rootReset())}}),button('Supprimer',()=>{if(confirm('Supprimer la sous-catégorie et ses pictogrammes ?')){c.children=c.children.filter(x=>x.id!==sc.id);db.base.items=db.base.items.filter(x=>x.sub!==sc.id);persist();renderAdmin(rootReset())}}));b.append(sr)})});
+ b=box(root,'Pictogrammes de la base commune','Ajouter ou modifier des images, des textes et la parole. Les éléments d’origine sont accessibles ci-dessous.');
+ editItemForm(b,null,false);getBaseItems().forEach(item=>editItemRow(b,item,false));
+ b=box(root,'Codes d’accès','Optionnel : sans code, les espaces de gestion restent accessibles à toute personne utilisant l’appareil.');
+ const a=field(db.settings.adminPin||'','Code Admin'),t=field(db.settings.teacherPin||'','Code Enseignant');a.type=t.type='password';row(b,a,t,button('Enregistrer les codes',()=>{db.settings.adminPin=a.value;db.settings.teacherPin=t.value;persist();alert('Codes enregistrés sur cet appareil.') }));
+}
+function rootReset(){const root=$id('content');root.replaceChildren();return root}
+function getBaseItems(){const built=[];LETTERS.forEach(x=>built.push({id:'letter-'+x.l,cat:'alphabet',icon:x.l,label:x.l,spoken:x.name,hint:x.hint,type:'legacy'}));Object.entries(VOCAB).forEach(([theme,words])=>words.forEach(([icon,label],index)=>built.push({id:'vocab-'+theme+'-'+index,cat:'vocab',sub:'theme-'+theme,icon,label,spoken:label,type:'legacy'})));CONSIGNES.forEach(([icon,label],index)=>built.push({id:'instruction-'+index,cat:'instructions',icon,label,spoken:label,type:'legacy'}));for(let i=0;i<=20;i++)built.push({id:'num-'+i,cat:'numbers',icon:String(i),label:String(i),spoken:String(i),type:'legacy'});return [...built,...db.base.items].map(x=>({...x,...(db.base.overrides[x.id]||{})}))}
+function editItemForm(parent,item,personal){const form=node('div',null,'fields');const cats=db.base.categories.map(c=>[c.id,c.name]);let cat=selection(cats,item?.cat||editCategory);const icon=field(item?.icon||'🖼️','Emoji ou lettre'),label=field(item?.label||'','Texte'),spoken=field(item?.spoken||'','Voix');const sub=selection([],item?.sub||'');function refreshSubs(){const c=db.base.categories.find(c=>c.id===cat.value);sub.replaceChildren();[['','Aucune'],...(c?.children||[]).map(x=>[x.id,x.name]),...(cat.value==='vocab'?Object.keys(VOCAB).map(k=>['theme-'+k,k]):[])].forEach(([id,n])=>{const o=node('option',n);o.value=id;sub.append(o)});sub.value=item?.sub||''}cat.onchange=refreshSubs;refreshSubs();const imageInput=node('input');imageInput.type='file';imageInput.accept='image/*';imageInput.title='Image facultative';let image=item?.image||'';imageInput.onchange=()=>{const f=imageInput.files?.[0];if(!f)return;const reader=new FileReader();reader.onload=()=>{image=reader.result};reader.readAsDataURL(f)};
+ const save=button(item?'Enregistrer':'➕ Ajouter',()=>{if(!label.value.trim())return alert('Le texte est obligatoire.');const updated={cat:cat.value,sub:sub.value,icon:icon.value||'🖼️',label:label.value.trim(),spoken:spoken.value.trim()||label.value.trim(),image};if(personal){const p=extra();if(item){if(item.personal){Object.assign(p.custom.find(x=>x.id===item.id),updated)}else p.modified[item.id]={...(p.modified[item.id]||{}),...updated}}else p.custom.push({...updated,id:uid(),personal:true})}else{if(item){if(item.type==='legacy')db.base.overrides[item.id]=updated;else Object.assign(db.base.items.find(x=>x.id===item.id),updated)}else db.base.items.push({...updated,id:uid()})}persist();if(personal)renderTeacher(rootReset());else renderAdmin(rootReset())});form.append(cat,sub,icon,label,spoken,imageInput,save);parent.append(form)}
+function editItemRow(parent,item,personal){const r=node('div',null,'editrow');const left=node('span');left.textContent=(item.icon||'🖼️')+' '+item.label+' — '+(db.base.categories.find(c=>c.id===item.cat)?.name||'');r.append(left);r.append(button('Modifier',()=>{const b=node('div',null,'editor');editItemForm(b,item,personal);r.after(b)}));if(!personal || item.personal)r.append(button('Supprimer',()=>{if(!confirm('Supprimer ce pictogramme ?'))return;if(personal)extra().custom=extra().custom.filter(x=>x.id!==item.id);else if(item.type==='legacy'){db.base.overrides[item.id]={...(db.base.overrides[item.id]||{}),deleted:true}}else db.base.items=db.base.items.filter(x=>x.id!==item.id);persist();personal?renderTeacher(rootReset()):renderAdmin(rootReset())}));parent.append(r)}
+function getProfileItems(){const p=extra();return [...getBaseItems(),...(p?.custom||[])].filter(x=>!x.deleted).map(x=>({...x,...(p?.modified?.[x.id]||{})})).filter(x=>!x.deleted)}
+function renderTeacher(root){setHead('Mode Enseignant','Personnalisation du profil : '+active().name);const p=extra();let b=box(root,'Visibilité des catégories','Ces réglages ne concernent que ce profil.');db.base.categories.forEach(c=>{const r=node('div',null,'editrow');r.append(node('strong',c.icon+' '+c.name),button(visible(c.id,'cat')?'👁️ Visible':'🙈 Masqué',()=>toggleVisible(c.id,'cat')));b.append(r);(c.children||[]).forEach(sc=>{const r=node('div',null,'editrow');r.append(node('span','↳ '+sc.name),button(visible(sc.id,'sub')?'👁️ Visible':'🙈 Masqué',()=>toggleVisible(sc.id,'sub')));b.append(r)})});
+ b=box(root,'Visibilité et favoris des pictogrammes');getProfileItems().forEach(item=>{const r=node('div',null,'editrow');r.append(node('span',(item.icon||'🖼️')+' '+item.label));r.append(button(visible(item.id,'item')?'👁️ Visible':'🙈 Masqué',()=>toggleVisible(item.id,'item')),button(p.favorites.includes(item.id)?'⭐ Favori':'☆ Favori',()=>{p.favorites=p.favorites.includes(item.id)?p.favorites.filter(x=>x!==item.id):[...p.favorites,item.id];persist();renderTeacher(rootReset())}),button('↑',()=>{const ids=getProfileItems().filter(x=>x.cat===item.cat).map(x=>x.id);const sorted=ids.sort((a,b)=>(p.order[a]??999999)-(p.order[b]??999999));const i=sorted.indexOf(item.id);if(i>0){[sorted[i-1],sorted[i]]=[sorted[i],sorted[i-1]];sorted.forEach((x,k)=>p.order[x]=k);persist();renderTeacher(rootReset())}}),button('↓',()=>{const ids=getProfileItems().filter(x=>x.cat===item.cat).map(x=>x.id);const sorted=ids.sort((a,b)=>(p.order[a]??999999)-(p.order[b]??999999));const i=sorted.indexOf(item.id);if(i<sorted.length-1){[sorted[i+1],sorted[i]]=[sorted[i],sorted[i+1]];sorted.forEach((x,k)=>p.order[x]=k);persist();renderTeacher(rootReset())}}),button('Modifier pour ce profil',()=>{const form=node('div',null,'editor');editItemForm(form,item,true);r.after(form)}));b.append(r)});
+ b=box(root,'Pictogrammes propres à ce profil','Ils ne seront pas ajoutés aux autres profils.');editItemForm(b,null,true);p.custom.forEach(item=>editItemRow(b,item,true));
+}
+function renderExtras(root){if(!activeProfile)return;if(state.cat==="__favorites"){setHead("Favoris","Les pictogrammes favoris de ce profil.");renderItems(root,getProfileItems().filter(x=>extra().favorites.includes(x.id)));return;}const p=extra();const cat=db.base.categories.find(c=>c.id===state.cat);if(!cat)return;if(!["alphabet","writing","vocab","numbers","instructions"].includes(cat.id))setHead(cat.name,cat.desc||"Appuie sur une image pour entendre son nom.");
+ // Les sections historiques conservent leur affichage ; les éléments administrés ont priorité.
+ if(['alphabet','vocab','instructions','numbers'].includes(cat.id)){
+  const all=getBaseItems().filter(x=>x.cat===cat.id);const modified=all.some(x=>db.base.overrides[x.id]||!visible(x.id,'item')||p.modified[x.id]||p.order?.[x.id]!==undefined);
+  if(modified){const original=root.querySelector('.grid');if(original)original.remove();if(cat.id==='vocab'){const t=state.vocabTheme;renderItems(root,getProfileItems().filter(x=>x.cat===cat.id&&(x.sub==='theme-'+t||!x.sub)))}else renderItems(root,getProfileItems().filter(x=>x.cat===cat.id))}
+  else {const adds=getProfileItems().filter(x=>x.cat===cat.id&&!x.type);if(adds.length)renderItems(root,adds)}
+ }else renderItems(root,getProfileItems().filter(x=>x.cat===cat.id));
+}
+function renderItems(root,items){const p=extra();const all=items.filter(x=>visible(x.id,'item')&&visible(x.cat,'cat')&&(!x.sub||visible(x.sub,'sub'))).sort((a,b)=>{const order=p.order||{};return (order[a.id]??999999)-(order[b.id]??999999)});const grouped=new Map();all.forEach(x=>{const k=x.sub||'';if(!grouped.has(k))grouped.set(k,[]);grouped.get(k).push(x)});grouped.forEach((items,sub)=>{if(sub){const c=db.base.categories.find(c=>c.id===state.cat);const title=(c?.children||[]).find(x=>x.id===sub)?.name||sub.replace('theme-','');root.append(node('h2',title,'subheading'))}const g=node('div',null,'grid');items.forEach(item=>{const shown={...item,...(p.modified[item.id]||{})};const tile=card(shown.icon||'🖼️',shown.label,'',()=>speak(shown.spoken||shown.label));if(shown.image){const e=tile.querySelector('.emoji');if(e){e.replaceChildren();const img=node('img');img.src=shown.image;img.alt=shown.label;img.className='imageicon';e.append(img)}}g.append(tile)});root.append(g)})}
+
+initSchool();
 </script>
 </body>
 </html>
