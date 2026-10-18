@@ -13,7 +13,7 @@
 main{min-width:0;height:100vh;height:100dvh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:78px}.phrasebar{position:sticky;top:0;z-index:5;background:white;border-bottom:1px solid var(--line);padding:16px 20px;display:grid;grid-template-columns:1fr;gap:10px}
 .phrase{min-height:110px;border:2px solid #d7dce5;border-radius:18px;padding:10px;display:flex;gap:8px;overflow-x:auto}.hint{margin:auto;color:#6b7280;text-align:center;font-weight:700}
 .token{min-width:88px;background:white;border:1px solid var(--line);border-radius:13px;padding:7px;display:grid;place-items:center}.token .emo{font-size:34px}.token b{font-size:13px;text-align:center}
-.actions{display:flex;gap:10px;justify-content:center;align-items:stretch}.actions button{border:0;border-radius:16px;color:white;font-weight:900;padding:14px 24px;min-width:135px;min-height:56px;font-size:28px;line-height:1.1;display:flex;align-items:center;justify-content:center}.actions .speak{min-width:170px;padding:16px 30px;font-size:32px;flex:1.18}.actions .undo,.actions .clear,.actions .readword{flex:1}.speak{background:var(--green)}.undo{background:var(--purple)}.readword{background:var(--purple)}.clear{background:var(--red)}
+.actions{display:flex;gap:10px;justify-content:center;align-items:stretch}.actions button{border:0;border-radius:16px;color:white;font-weight:900;padding:14px 24px;min-width:135px;min-height:56px;font-size:28px;line-height:1.1;display:flex;align-items:center;justify-content:center}.actions .speak{min-width:170px;padding:16px 30px;font-size:32px;flex:1.18}.actions .undo,.actions .clear,.actions .readword{flex:1}.speak{background:var(--green)}.undo{background:var(--purple)}.readword{background:var(--purple)}.spaceword{background:#475569;flex:.75;min-width:110px;font-size:22px}.clear{background:var(--red)}
 .content{padding:22px}.head{display:flex;justify-content:space-between;align-items:end;gap:14px}.head small{font-weight:900;color:var(--purple);letter-spacing:.06em}.head h1{margin:4px 0 12px;font-size:30px}.search{border:1px solid var(--line);border-radius:14px;background:white;padding:12px 14px;width:min(330px,42vw)}
 .starters{background:#f2ecff;border:1px solid #e1d5f8;border-radius:16px;padding:12px;margin:5px 0 18px}.starters strong{color:#4f2f91}.starterrow{display:flex;gap:8px;overflow-x:auto;margin-top:9px}.starter{white-space:nowrap;border:1px solid #d8caf3;background:white;color:#4f2f91;border-radius:12px;padding:10px 12px;font-weight:900}
 .grid{display:grid;grid-template-columns:repeat(5,minmax(125px,1fr));gap:14px}.pic{min-height:165px;border:2px solid #e3e6ec;background:white;border-radius:19px;padding:12px;display:grid;place-items:center;align-content:center;gap:10px}.pic .emo{font-size:66px}.pic b{text-align:center;font-size:12px;color:#6b7280}.pic img,.token img{width:112px;height:112px;object-fit:contain}.pic{position:relative}.favstar{position:absolute;right:5px;top:4px;border:0;background:transparent;font-size:23px;padding:2px;z-index:2}.favstar.on{filter:none}.favstar.off{opacity:.35}.token img{width:54px;height:54px}.token{cursor:grab;touch-action:none;user-select:none;flex-shrink:0}.ecole-insert-marker6{width:5px;min-width:5px;border-radius:8px;background:#7042c1;align-self:stretch;pointer-events:none}.phrase.ecole-drag-over6{outline:3px dashed #7042c1;outline-offset:-3px}.credit{font-size:11px;color:#6b7280;text-align:center;margin:18px 0 2px}
@@ -33,7 +33,7 @@ main{min-width:0;height:100vh;height:100dvh;overflow-y:auto;overscroll-behavior:
 .customcat-row{grid-column:1/-1;background:#f8f9fc;border:1px solid #e2e6ef;border-radius:14px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .customcat-row button{border:0;border-radius:10px;padding:8px 10px;font-weight:800;background:#fff0f0;color:#b42318}
 .profilebar{display:flex;align-items:center;gap:8px;background:#eef4ff;border:1px solid #d6e2fa;border-radius:14px;padding:9px 12px;margin:8px 0;font-weight:800}.profilebar button{margin-left:auto;border:0;border-radius:10px;padding:8px 10px;background:white;font-weight:800}.profile-list{display:grid;gap:8px;margin:12px 0}.profile-row{display:flex;gap:8px;align-items:center;border:1px solid #e1e5ed;border-radius:12px;padding:10px}.profile-row b{flex:1}.profile-row button{border:0;border-radius:9px;padding:8px;font-weight:800}.pin-input{width:100%;box-sizing:border-box;border:2px solid #d9dee8;border-radius:14px;padding:14px;font-size:24px;text-align:center;letter-spacing:8px;font-weight:900}.pin-note{font-size:13px;color:#667085;margin-top:10px}.voice-select,.voice-range{width:100%;box-sizing:border-box}.voice-select{border:2px solid #d9dee8;border-radius:12px;padding:12px;font-size:16px;background:white}.voice-value{font-weight:900;color:#234b91}.syncbox{border:2px solid #dbe7ff;border-radius:16px;padding:14px;margin:12px 0;background:#f7faff}.syncbox input{width:100%;box-sizing:border-box;padding:11px;margin:5px 0;border:2px solid #d9dee8;border-radius:10px;font-size:15px}.syncstatus{font-size:13px;font-weight:800;margin:8px 0}.feedback{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:99;background:#17345f;color:white;padding:10px 16px;border-radius:14px;font-weight:900;box-shadow:0 5px 18px #0003;opacity:0;pointer-events:none;transition:opacity .15s}.feedback.show{opacity:1}.bottom,.drawer{display:none}
-@media(max-width:900px){.app{grid-template-columns:1fr;height:100vh;height:100dvh;overflow:hidden}.side{display:none}.phrasebar{grid-template-columns:1fr;padding:10px}.actions{display:flex;gap:8px}.actions button{flex:1;min-width:0;min-height:58px;padding:12px 8px;font-size:18px;border-radius:15px}.actions .speak{flex:1.3;font-size:21px}.actions .undo,.actions .clear,.actions .readword{font-size:17px}.phrase{min-height:92px}.content{padding:14px}.head{display:block}.head h1{font-size:25px}.search{width:100%;margin-bottom:12px}.grid{grid-template-columns:repeat(3,1fr);gap:9px}.pic{min-height:132px}.pic .emo{font-size:45px}.pic b{font-size:16px}.bottom{display:grid;grid-template-columns:1fr;gap:7px;position:fixed;left:0;right:0;bottom:0;z-index:10;background:white;border-top:1px solid var(--line);padding:7px 7px calc(7px + env(safe-area-inset-bottom))}.bottom button{border:0;border-radius:12px;padding:11px 4px;font-weight:900}.bottom .speak{display:none}.bottom .clear{display:none}.drawer.open{display:flex;position:fixed;inset:0;z-index:20;background:#fff6;align-items:end}.sheet{width:100%;max-height:82vh;overflow:auto;background:var(--navy);color:white;border-radius:22px 22px 0 0;padding:15px}.sheet .x{float:right;border:0;border-radius:9px;padding:6px 10px}.sheet h2{margin:7px 0 15px}}
+@media(max-width:900px){.app{grid-template-columns:1fr;height:100vh;height:100dvh;overflow:hidden}.side{display:none}.phrasebar{grid-template-columns:1fr;padding:10px}.actions{display:flex;gap:6px;flex-wrap:wrap}.actions button{flex:1;min-width:0;min-height:58px;padding:12px 8px;font-size:18px;border-radius:15px}.actions .speak{flex:1.3;font-size:21px}.actions .undo,.actions .clear,.actions .readword,.actions .spaceword{font-size:17px}.phrase{min-height:92px}.content{padding:14px}.head{display:block}.head h1{font-size:25px}.search{width:100%;margin-bottom:12px}.grid{grid-template-columns:repeat(3,1fr);gap:9px}.pic{min-height:132px}.pic .emo{font-size:45px}.pic b{font-size:16px}.bottom{display:grid;grid-template-columns:1fr;gap:7px;position:fixed;left:0;right:0;bottom:0;z-index:10;background:white;border-top:1px solid var(--line);padding:7px 7px calc(7px + env(safe-area-inset-bottom))}.bottom button{border:0;border-radius:12px;padding:11px 4px;font-weight:900}.bottom .speak{display:none}.bottom .clear{display:none}.drawer.open{display:flex;position:fixed;inset:0;z-index:20;background:#fff6;align-items:end}.sheet{width:100%;max-height:82vh;overflow:auto;background:var(--navy);color:white;border-radius:22px 22px 0 0;padding:15px}.sheet .x{float:right;border:0;border-radius:9px;padding:6px 10px}.sheet h2{margin:7px 0 15px}}
 @media(max-width:520px){.grid{grid-template-columns:repeat(2,1fr)}}
 
 /* v1.7 — finitions ergonomiques téléphone/tablette */
@@ -215,7 +215,7 @@ function adminReturnToPictogramsStable(scrollY){
 <div class="app">
 <aside class="side"><div class="brand">🎒 Ma CAA École</div><nav id="nav" class="nav"></nav></aside>
 <main>
-<header class="phrasebar"><div id="phrase" class="phrase"><span class="hint">Glissez des pictogrammes ici pour composer des mots</span></div><div class="actions"><button class="speak" id="speak">🔊 PARLER</button><button class="readword" id="readword">📖 LIRE</button><button class="clear" id="clear">🗑 EFFACER</button></div></header>
+<header class="phrasebar"><div id="phrase" class="phrase"><span class="hint">Glissez des pictogrammes ici pour composer des mots</span></div><div class="actions"><button class="speak" id="speak">🔊 PARLER</button><button class="readword" id="readword">📖 LIRE</button><button class="spaceword" id="spaceword" type="button" title="Ajouter un espace dans la barre">␣ ESPACE</button><button class="clear" id="clear">🗑 EFFACER</button></div></header>
 <section class="content">
 <div class="head"><div><h1 id="title">Favoris</h1></div><input id="search" class="search" placeholder="🔎 Rechercher…"></div>
 <div class="starters"><strong>Débuts de phrase</strong><div id="starterrow" class="starterrow"></div></div>
@@ -331,7 +331,11 @@ function openVoiceSettings(){
 }
 
 function makeUtterance(text){
-  const u=new SpeechSynthesisUtterance(text);
+  // Une lettre isolée est énoncée comme nom de lettre, sans « majuscule ».
+  // Ne modifie ni le texte affiché, ni les enregistrements personnels.
+  const voiceText=(typeof text==='string' && /^[A-ZÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŸ]$/u.test(text.trim()))
+    ? text.trim().toLocaleLowerCase('fr-FR') : text;
+  const u=new SpeechSynthesisUtterance(voiceText);
   u.lang="fr-FR";
   u.rate=.88;
   const voices=speechSynthesis.getVoices();
@@ -398,7 +402,7 @@ function renderPhrase(){
   phrase.forEach((x,i)=>{
     const b=document.createElement("button");b.type='button';b.className="token";b.dataset.phraseIndex=String(i);
     b.draggable=true;
-    b.innerHTML=imageHtml(x.picto||"",x.icon||"🖼️")+"<b>"+x.label+"</b>";
+    b.innerHTML=x.isSpacer ? '<span aria-hidden="true" style="font-size:28px;color:#64748b">␣</span><b>Espace</b>' : imageHtml(x.picto||"",x.icon||"🖼️")+"<b>"+x.label+"</b>";
     b.title='Cliquer pour retirer, glisser pour déplacer';
     b.onclick=(ev)=>{if(Date.now()<ecoleSuppressTokenClick6){ev.preventDefault();return}phrase.splice(i,1);renderPhrase()};
     b.addEventListener('dragstart',e=>{window.__ecoleMovingToken6=i;window.__ecoleDraggingItem5=null;try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','ecole-token')}catch(err){}});
@@ -4017,7 +4021,7 @@ async function ecoleSpeakPhraseSequence6(){
 function ecoleReadWhole6(){
   ecolePhrasePlayback6++;
   // Les libellés sont les graphèmes écrits, pas leurs consignes vocales.
-  const text=phrase.map(x=>String(x.label||'').trim()).join('');
+  const text=phrase.map(x=>x.isSpacer?' ':String(x.label||'').trim()).join('').replace(/ {2,}/g,' ').trim();
   if(!text)return;
   speakText(text.toLocaleLowerCase('fr-FR'));
 }
@@ -4034,7 +4038,8 @@ function render(){
   el("title").textContent=cd.name;renderProfileBar();renderNav(el("nav"));renderNav(el("nav2"));renderGrid();renderPhrase();
 }
 starters.forEach(x=>{const b=document.createElement("button");b.className="starter";b.textContent=x[0]+" "+x[1];b.onclick=()=>add(x);el("starterrow").appendChild(b)});
-el("search").oninput=renderGrid;el("speak").onclick=el("speak2").onclick=speak;el("clear").onclick=el("clear2").onclick=()=>{phrase=[];renderPhrase()};el("readword").onclick=ecoleReadWhole6;el("cats").onclick=()=>el("drawer").classList.add("open");el("close").onclick=()=>el("drawer").classList.remove("open");
+el("search").oninput=renderGrid;el("speak").onclick=el("speak2").onclick=speak;el("clear").onclick=el("clear2").onclick=()=>{phrase=[];renderPhrase()};el("readword").onclick=ecoleReadWhole6;
+el("spaceword").onclick=()=>{ecolePhraseInsert6({icon:'',label:' ',speech:'',picto:null,isSpacer:true},phrase.length)};el("cats").onclick=()=>el("drawer").classList.add("open");el("close").onclick=()=>el("drawer").classList.remove("open");
 render();
 </script>
 
