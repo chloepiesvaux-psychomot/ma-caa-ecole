@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b2a4a">
-<title>Ma CAA École — Bêta 10</title>
+<title>Ma CAA École — Bêta 11</title>
 <style>
 :root{--navy:#0b2a4a;--purple:#7042c1;--green:#2eaf58;--red:#ee4e45;--yellow:#ffd85a;--bg:#f5f7fb;--line:#dfe4ec}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:#111827}button,input{font:inherit}
@@ -231,7 +231,7 @@ function adminReturnToPictogramsStable(scrollY){
 <section class="content">
 <div class="head"><div><h1 id="title">Favoris</h1></div><input id="search" class="search" placeholder="🔎 Rechercher…"></div>
 <div class="starters"><strong>Débuts de phrase</strong><div id="starterrow" class="starterrow"></div></div>
-<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 10</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
+<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 11</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
 </section></main></div>
 <div class="bottom"><button id="cats">☰ Catégories</button><button class="speak" id="speak2">🔊 Parler</button><button class="clear" id="clear2">🗑 Effacer</button></div>
 <div id="feedback" class="feedback"></div><div id="drawer" class="drawer"><div class="sheet"><button class="x" id="close">✕</button><h2>Catégories</h2><nav id="nav2" class="nav"></nav></div></div>
@@ -3878,36 +3878,34 @@ function adminManageSubcategories(cat){
    pick.style.cssText="max-height:430px;overflow:auto;border:2px solid #d8e0eb;border-radius:14px;padding:12px;margin:10px 0;background:#fbfcff";
    pick.innerHTML="<b>🧩 Pictogrammes dans : "+adminSubcatPath(sc)+"</b>";
 
-   // V115 : même catalogue que la page Administrateur > Pictogrammes
-   // pour la catégorie en cours, y compris catégories ajoutées et pictogrammes masqués.
+   // Bêta 11 : navigateur d'affectation hiérarchique. L'état de sélection
+   // concerne uniquement le dossier de destination, jamais les autres dossiers.
    let entries=[];
-   try{ entries=adminPermanentEntries(cat)||[]; }catch(e){ console.warn(e); }
-   if(!entries.length){
-     const empty=document.createElement("div");
-     empty.textContent="Aucun pictogramme permanent dans cette catégorie.";
-     empty.style.cssText="padding:14px;color:#667085";
-     pick.appendChild(empty);
-   }else{
-     entries.forEach(v=>{
-       const row=document.createElement("label");
-       row.style.cssText="display:flex;gap:8px;align-items:center;padding:8px;border-bottom:1px solid #eef1f5";
-       const cb=document.createElement("input");
-       cb.type="checkbox";
-       cb.style.cssText="width:21px;height:21px";
-       const fresh=()=>{const now=readAdminBase();return (now.subcategories||[]).find(x=>x.id===sc.id)};
-       cb.checked=(fresh()?.itemIds||[]).includes(v.id);
-       cb.onchange=()=>{
-         const now=readAdminBase(),target=(now.subcategories||[]).find(x=>x.id===sc.id);
-         if(!target)return;
-         target.itemIds=target.itemIds||[];
-         target.itemIds=cb.checked?[...new Set([...target.itemIds,v.id])]:target.itemIds.filter(id=>id!==v.id);
-         writeAdminBase(now);
-         // Ne pas fermer, recharger ou déplacer la fenêtre.
-       };
-       row.append(cb,document.createTextNode((v.emoji||"🖼️")+" "+v.label));
-       pick.appendChild(row);
-     });
-   }
+   try{entries=adminPermanentEntries(cat)||[]}catch(e){console.warn(e)}
+   const fresh=()=>{const b=readAdminBase();return (b.subcategories||[]).find(x=>String(x.id)===String(sc.id))};
+   const assigned=new Set((fresh()?.itemIds||[]).map(String));
+   const allFolders=(readAdminBase().subcategories||[]).filter(x=>!x.deleted&&x.category===cat.name);
+   const sourceById=new Map(entries.map(e=>[String(e.id),e]));
+   const byFolder=new Map(),parentOf=new Map();
+   allFolders.forEach(f=>{const parent=allFolders.some(x=>String(x.id)===String(f.parentId))?String(f.parentId):'';parentOf.set(String(f.id),parent);byFolder.set(String(f.id),[]) });
+   const explicitlyPlaced=new Set();
+   for(const f of allFolders){for(const id of (f.itemIds||[])){const key=String(id);if(sourceById.has(key)){byFolder.get(String(f.id)).push(key);explicitlyPlaced.add(key)}}}
+   const roots=entries.filter(e=>!explicitlyPlaced.has(String(e.id))).map(e=>String(e.id));
+   const uniq=xs=>[...new Set(xs)];
+   const descendants=(folder,seen=new Set())=>{const key=String(folder.id);if(seen.has(key))return [];seen.add(key);return uniq([...(byFolder.get(key)||[]),...allFolders.filter(x=>parentOf.get(String(x.id))===key).flatMap(x=>descendants(x,seen))])};
+   const saveSelection=()=>{const base=readAdminBase(),target=(base.subcategories||[]).find(x=>String(x.id)===String(sc.id));if(!target)return;target.itemIds=uniq([...assigned]);writeAdminBase(base)};
+   const toolbar=document.createElement('div');toolbar.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0';
+   const search=document.createElement('input');search.placeholder='🔎 Rechercher un pictogramme';search.style.cssText='padding:9px;border:1px solid #ccd5e2;border-radius:9px;flex:1;min-width:180px';
+   const status=document.createElement('small');status.style.cssText='color:#475569;font-weight:800';
+   toolbar.append(search,status);pick.appendChild(toolbar);
+   const tree=document.createElement('div');tree.style.cssText='border:1px solid #dae1eb;border-radius:12px;overflow:auto;background:#fff';pick.appendChild(tree);
+   const opened=new Set();
+   const stateRefresh=()=>{status.textContent=assigned.size+' pictogramme(s) coché(s)';renderTree()};
+   function rowItem(id,depth){const e=sourceById.get(id);if(!e)return;const row=document.createElement('label');row.style.cssText='display:flex;align-items:center;gap:8px;padding:7px 8px 7px '+(12+depth*22)+'px;border-bottom:1px solid #edf0f5;cursor:pointer';const cb=document.createElement('input');cb.type='checkbox';cb.checked=assigned.has(id);cb.style.cssText='width:20px;height:20px;accent-color:#2563eb';cb.onchange=()=>{if(cb.checked)assigned.add(id);else assigned.delete(id);saveSelection();stateRefresh()};const icon=document.createElement('span');icon.textContent=e.emoji||'🖼️';const label=document.createElement('span');label.textContent=e.label||id;row.append(cb,icon,label);tree.appendChild(row)}
+   function rowFolder(folder,depth){const id=String(folder.id),ids=descendants(folder),n=ids.filter(x=>assigned.has(x)).length;const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:7px;padding:8px 7px 8px '+(8+depth*22)+'px;border-bottom:1px solid #e8edf5;background:#f6f9ff';const exp=document.createElement('button');exp.type='button';exp.textContent=opened.has(id)?'▾':'▸';exp.style.cssText='border:0;background:transparent;cursor:pointer;font-size:18px;min-width:25px';exp.onclick=()=>{opened.has(id)?opened.delete(id):opened.add(id);renderTree()};const cb=document.createElement('input');cb.type='checkbox';cb.checked=ids.length>0&&n===ids.length;cb.indeterminate=n>0&&n<ids.length;cb.style.cssText='width:20px;height:20px;accent-color:#2563eb';cb.onchange=()=>{for(const k of ids){if(cb.checked)assigned.add(k);else assigned.delete(k)}saveSelection();stateRefresh()};const name=document.createElement('span');name.textContent=(folder.icon||'📁')+' '+folder.name;name.style.cssText='font-weight:750;cursor:pointer;flex:1';name.onclick=exp.onclick;const counter=document.createElement('small');counter.textContent=n+'/'+ids.length;counter.style.color='#667085';row.append(exp,cb,name,counter);tree.appendChild(row);if(opened.has(id)){for(const f of allFolders.filter(x=>parentOf.get(String(x.id))===id).sort(sortFolders))rowFolder(f,depth+1);for(const x of uniq(byFolder.get(id)||[]))rowItem(x,depth+1)}}
+   const sortFolders=(a,b)=>Number(a.order??0)-Number(b.order??0)||allFolders.indexOf(a)-allFolders.indexOf(b);
+   function renderTree(){tree.innerHTML='';const q=search.value.toLocaleLowerCase('fr-FR').trim();if(q){for(const e of entries.filter(x=>String(x.label||'').toLocaleLowerCase('fr-FR').includes(q)))rowItem(String(e.id),0);return}const root={id:'__loose__',name:'Sans dossier',icon:'📄'};const rr=document.createElement('div');rr.style.cssText='display:flex;align-items:center;gap:8px;padding:9px;background:#eef4ff;font-weight:800';const bt=document.createElement('button');bt.type='button';bt.textContent=opened.has('__loose__')?'▾':'▸';bt.onclick=()=>{opened.has('__loose__')?opened.delete('__loose__'):opened.add('__loose__');renderTree()};const cb=document.createElement('input');cb.type='checkbox';cb.style.cssText='width:20px;height:20px';const n=roots.filter(id=>assigned.has(id)).length;cb.checked=roots.length>0&&n===roots.length;cb.indeterminate=n>0&&n<roots.length;cb.onchange=()=>{roots.forEach(id=>cb.checked?assigned.add(id):assigned.delete(id));saveSelection();stateRefresh()};const label=document.createElement('span');label.textContent='📄 Sans dossier ('+roots.length+')';label.onclick=bt.onclick;rr.append(bt,cb,label);tree.appendChild(rr);if(opened.has('__loose__'))roots.forEach(id=>rowItem(id,1));allFolders.filter(f=>!parentOf.get(String(f.id))).sort(sortFolders).forEach(f=>rowFolder(f,0));if(!entries.length){const x=document.createElement('div');x.textContent='Aucun pictogramme dans cette catégorie.';x.style.padding='10px';tree.appendChild(x)}}
+   search.oninput=renderTree;status.textContent=assigned.size+' pictogramme(s) coché(s)';renderTree();
    list.after(pick);
  }
  function addFolder(parent){const n=prompt(parent?"Nom du dossier dans « "+parent.name+" » :":"Nom du dossier :");if(!n)return;const name=n.trim();if(!name)return;chooseSubcategoryEmoji("Dossier : <b>"+name+"</b>","📁",chosen=>{const now=readAdminBase();now.subcategories=now.subcategories||[];const pid=parent?.id||"";let siblings=now.subcategories.filter(x=>x.category===cat.name&&!x.deleted&&(x.parentId||"")===pid); if(!siblings.length) siblings=allPermanentPictogramsV114();now.subcategories.push({id:"sc"+Date.now(),category:cat.name,parentId:pid,name,icon:chosen,itemIds:[],order:siblings.length,hidden:false});writeAdminBase(now);refresh()})}
@@ -4054,6 +4052,7 @@ function speak(){
   ecoleSpeakPhraseSequence6().catch(e=>console.warn('Lecture de la barre',e));
 }
 let ecolePhrasePlayback6=0;
+let ecoleTrimCtx11=null;
 async function ecoleSpeakPhraseSequence6(){
   const run=++ecolePhrasePlayback6;
   try{speechSynthesis.cancel()}catch(e){}
@@ -4067,10 +4066,28 @@ async function ecoleSpeakPhraseSequence6(){
     }
     if(run!==ecolePhrasePlayback6)return;
     if(blob){
-      await new Promise(resolve=>{
+      await new Promise(async resolve=>{
         const url=URL.createObjectURL(blob),a=new Audio(url);ecoleCurrentlyPlaying=a;
-        const finish=()=>{URL.revokeObjectURL(url);if(ecoleCurrentlyPlaying===a)ecoleCurrentlyPlaying=null;resolve()};
-        a.onended=finish;a.onerror=finish;a.play().catch(finish);
+        let done=false,timer=null;
+        const finish=()=>{if(done)return;done=true;if(timer)clearTimeout(timer);a.pause();URL.revokeObjectURL(url);if(ecoleCurrentlyPlaying===a)ecoleCurrentlyPlaying=null;resolve()};
+        a.onerror=finish;a.onended=finish;
+        // En mode rapide, ignorer les longs blancs aux extrémités des MP3.
+        // Ne jamais accélérer ni tronquer le milieu du phonème.
+        if(ecolePauseBetween8()<=100 && window.AudioContext){
+          try{
+            const ctx=ecoleTrimCtx11||(ecoleTrimCtx11=new AudioContext());
+            const decoded=await ctx.decodeAudioData(await blob.arrayBuffer());
+            const ch=decoded.getChannelData(0), sr=decoded.sampleRate;
+            const stride=Math.max(1,Math.floor(sr/400));let first=0,last=ch.length-1;
+            while(first<ch.length && Math.abs(ch[first])<0.008)first+=stride;
+            while(last>first && Math.abs(ch[last])<0.008)last-=stride;
+            if(first<last && (last-first)/sr>0.025){
+              const begin=Math.max(0,first/sr-0.018),end=Math.min(decoded.duration,last/sr+0.045);
+              a.addEventListener('loadedmetadata',()=>{if(!done){try{a.currentTime=begin}catch(e){};timer=setTimeout(finish,Math.max(50,(end-begin)*1000+30))}},{once:true});
+            }
+          }catch(e){/* Repli standard si décodage indisponible. */}
+        }
+        a.play().catch(finish);
       });
     }else if(p.speech){
       await new Promise(resolve=>{if(!('speechSynthesis' in window)){resolve();return}const u=makeUtterance(p.speech);u.onend=resolve;u.onerror=resolve;speechSynthesis.speak(u)});
@@ -13720,7 +13737,7 @@ body.admin270-open #undo-last-270{bottom:18px}
    let chosen=String(activeSubcategoryByCategory[cat.name]||'all');
    let selected=chosen==='all'?null:all.find(sc=>String(sc.id)===chosen);
    if(chosen!=='all'&&!selected){activeSubcategoryByCategory[cat.name]='all';selected=null}
-   const siblings=all.filter(sc=>String(sc.parentId||'')===String(selected?.id||''));
+   const siblings=all.filter(sc=>String(sc.parentId||'')===String(selected?.id||'')).sort((a,b)=>Number(a.order??0)-Number(b.order??0)||all.indexOf(a)-all.indexOf(b));
    const path=[];let at=selected;const seen=new Set();
    while(at&&!seen.has(String(at.id))){seen.add(String(at.id));path.unshift(at);at=all.find(sc=>String(sc.id)===String(at.parentId||''))}
    const header=document.createElement('div');header.className='school-path';
