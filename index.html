@@ -69,6 +69,10 @@ button{min-height:44px;-webkit-tap-highlight-color:transparent}
 .admin-picto-card .ap-vis{height:92px;display:flex;justify-content:center;align-items:center;font-size:56px;background:#fff;border-radius:10px}
 .admin-picto-card .ap-vis img{max-width:92px;max-height:92px;object-fit:contain;border-radius:9px}
 .admin-picto-card button{width:100%;min-height:38px}
+
+/* Bêta 5 : repère discret de dépôt, aucun symbole superposé aux images */
+#phrase.ecole-drag-over5{border-color:#1976d2;background:#edf6ff;box-shadow:inset 0 0 0 2px #1976d2}
+.pic{cursor:grab}.pic:active{cursor:grabbing}
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -211,7 +215,7 @@ function adminReturnToPictogramsStable(scrollY){
 <div class="app">
 <aside class="side"><div class="brand">🎒 Ma CAA École</div><nav id="nav" class="nav"></nav></aside>
 <main>
-<header class="phrasebar"><div id="phrase" class="phrase"><span class="hint">Touchez un pictogramme pour construire une phrase</span></div><div class="actions"><button class="speak" id="speak">🔊 PARLER</button><button class="undo" id="undo">↩ RETIRER</button><button class="clear" id="clear">🗑 EFFACER</button></div></header>
+<header class="phrasebar"><div id="phrase" class="phrase"><span class="hint">Glissez des pictogrammes ici pour composer des mots</span></div><div class="actions"><button class="speak" id="speak">🔊 PARLER</button><button class="undo" id="undo">↩ RETIRER</button><button class="clear" id="clear">🗑 EFFACER</button></div></header>
 <section class="content">
 <div class="head"><div><h1 id="title">Favoris</h1></div><input id="search" class="search" placeholder="🔎 Rechercher…"></div>
 <div class="starters"><strong>Débuts de phrase</strong><div id="starterrow" class="starterrow"></div></div>
@@ -359,7 +363,7 @@ function add(x){
 }
 function renderPhrase(){
   const box=el("phrase");box.innerHTML="";
-  if(!phrase.length){box.innerHTML='<span class="hint">Touchez un pictogramme pour construire une phrase</span>';return}
+  if(!phrase.length){box.innerHTML='<span class="hint">Glissez des pictogrammes ici pour composer des mots</span>';return}
   phrase.forEach((x,i)=>{
     const b=document.createElement("button");b.className="token";
     b.innerHTML=imageHtml(x.picto||"",x.icon||"🖼️")+"<b>"+x.label+"</b>";
@@ -2796,8 +2800,7 @@ function activateUserPicto246(x,anchor,ev){
   closeAllUserChoiceBubbles233();
 
   // Tous les pictogrammes passent désormais exactement par le même chemin.
-  const d=appendPhraseOnly246(x);
-  const parentSpeech=spokenText(x)||d[2]||d[1];
+  const parentSpeech=spokenText(x)||displayItem(x)[2]||displayLabel(x);
   ecoleAudioSpeakItem(x,parentSpeech);
 
   // BETA269 : lorsqu'un pictogramme possède À LA FOIS une action vers
@@ -2815,6 +2818,66 @@ function activateUserPicto246(x,anchor,ev){
   }
 }
 
+// Bêta 5 — le dépôt seul ajoute un pictogramme dans la barre de composition.
+// Les données, les sons et les modes adultes restent intacts.
+function ecoleDropPicto5(x){
+  appendPhraseOnly246(x);
+  ecoleAudioSpeakItem(x,spokenText(x)||displayItem(x)[2]||displayLabel(x));
+  window.__ecoleDragCompleted5=Date.now();
+}
+function ecoleDropTarget5(clientX,clientY){
+  const target=document.getElementById('phrase');
+  if(!target)return false;
+  const r=target.getBoundingClientRect();
+  return clientX>=r.left&&clientX<=r.right&&clientY>=r.top&&clientY<=r.bottom;
+}
+function ecoleBindPictoDrag5(b,x){
+  b.draggable=true;
+  b.addEventListener('dragstart',e=>{
+    window.__ecoleDraggingItem5=x;
+    try{e.dataTransfer.effectAllowed='copy';e.dataTransfer.setData('text/plain','ecole-picto')}catch(err){}
+  });
+  b.addEventListener('dragend',()=>{window.__ecoleDraggingItem5=null;window.__ecoleDragCompleted5=Date.now()});
+  // Sur iOS, le glissement HTML natif ne fonctionne pas toujours :
+  // gestion tactile sans ajouter de boutons ou masquer le dessin.
+  let touch=null;
+  b.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1)return;
+    const t=e.touches[0];touch={x:t.clientX,y:t.clientY,started:Date.now(),active:false};
+  },{passive:true});
+  b.addEventListener('touchmove',e=>{
+    if(!touch||!e.touches.length)return;
+    const t=e.touches[0],dx=t.clientX-touch.x,dy=t.clientY-touch.y;
+    if(!touch.active){
+      if(Date.now()-touch.started<180||Math.hypot(dx,dy)<16)return;
+      touch.active=true;
+    }
+    if(e.cancelable)e.preventDefault();
+    const target=document.getElementById('phrase');
+    if(target)target.classList.toggle('ecole-drag-over5',ecoleDropTarget5(t.clientX,t.clientY));
+  },{passive:false});
+  b.addEventListener('touchend',e=>{
+    if(!touch)return;
+    const wasActive=touch.active,t=e.changedTouches[0];touch=null;
+    document.getElementById('phrase')?.classList.remove('ecole-drag-over5');
+    if(wasActive){
+      window.__ecoleDragCompleted5=Date.now();
+      if(t&&ecoleDropTarget5(t.clientX,t.clientY))ecoleDropPicto5(x);
+      if(e.cancelable)e.preventDefault();
+    }
+  },{passive:false});
+  b.addEventListener('touchcancel',()=>{touch=null;document.getElementById('phrase')?.classList.remove('ecole-drag-over5')},{passive:true});
+}
+(function ecoleInstallDropZone5(){
+  const init=()=>{
+    const target=document.getElementById('phrase');if(!target||target.dataset.ecoleDrop5)return;
+    target.dataset.ecoleDrop5='1';
+    target.addEventListener('dragover',e=>{if(!window.__ecoleDraggingItem5)return;e.preventDefault();try{e.dataTransfer.dropEffect='copy'}catch(err){};target.classList.add('ecole-drag-over5')});
+    target.addEventListener('dragleave',e=>{if(!target.contains(e.relatedTarget))target.classList.remove('ecole-drag-over5')});
+    target.addEventListener('drop',e=>{if(!window.__ecoleDraggingItem5)return;e.preventDefault();const x=window.__ecoleDraggingItem5;window.__ecoleDraggingItem5=null;target.classList.remove('ecole-drag-over5');ecoleDropPicto5(x)});
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
 function createNormalCard(x,box){
   const b=document.createElement("button");b.className="pic";b.innerHTML=picHtml(x);
   // Les enfants ne voient jamais le bouton étoile.
@@ -2826,7 +2889,10 @@ function createNormalCard(x,box){
     star.onclick=(e)=>{e.stopPropagation();toggleFav(x)};
     b.appendChild(star);
   }
-  b.onclick=(ev)=>{activateUserPicto246(x,b,ev)};box.appendChild(b);
+  // Bêta 5 : clic = écouter ; glisser vers la barre = écouter et composer.
+  ecoleBindPictoDrag5(b,x);
+  b.onclick=(ev)=>{if(Date.now()-(window.__ecoleDragCompleted5||0)<650){ev.preventDefault();return}activateUserPicto246(x,b,ev)};
+  box.appendChild(b);
 }
 let parentLazyView=null;
 function renderPersonalize(box){
