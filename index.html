@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b2a4a">
-<title>Ma CAA École — Base vierge bêta 1</title>
+<title>Ma CAA École — Base vierge bêta 2</title>
 <style>
 :root{--navy:#0b2a4a;--purple:#7042c1;--green:#2eaf58;--red:#ee4e45;--yellow:#ffd85a;--bg:#f5f7fb;--line:#dfe4ec}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:#111827}button,input{font:inherit}
@@ -215,7 +215,7 @@ function adminReturnToPictogramsStable(scrollY){
 <section class="content">
 <div class="head"><div><h1 id="title">Favoris</h1></div><input id="search" class="search" placeholder="🔎 Rechercher…"></div>
 <div class="starters"><strong>Débuts de phrase</strong><div id="starterrow" class="starterrow"></div></div>
-<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Base vierge bêta 1</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
+<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Base vierge bêta 2</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
 </section></main></div>
 <div class="bottom"><button id="cats">☰ Catégories</button><button class="speak" id="speak2">🔊 Parler</button><button class="clear" id="clear2">🗑 Effacer</button></div>
 <div id="feedback" class="feedback"></div><div id="drawer" class="drawer"><div class="sheet"><button class="x" id="close">✕</button><h2>Catégories</h2><nav id="nav2" class="nav"></nav></div></div>
@@ -13389,4 +13389,62 @@ body.admin270-open #undo-last-270{bottom:18px}
 })();
 </script>
 
+
+<!-- Ma CAA École : navigation par dossiers et interface sans débuts de phrases -->
+<style id="school-folder-navigation-v2">
+.starters,.starters209-compact{display:none!important}
+.school-path{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:2px 0 12px;min-height:46px;color:#475569;font-size:14px;font-weight:750}
+.school-back{background:#e9eef8;border:1px solid #cbd5e1;border-radius:11px;padding:8px 12px;color:#1d3457;font-weight:850;min-height:38px}
+.school-crumb{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:72vw}
+.school-folder{cursor:pointer;border-color:#d4dff0!important;background:#fff!important}
+.school-folder .school-folder-emoji{font-size:55px;line-height:1.15}
+.school-folder .school-folder-name{font-size:17px;color:#152844;font-weight:850;line-height:1.25;text-align:center}
+.school-folder .school-folder-mark{font-size:12px;color:#667085}
+.school-empty{grid-column:1/-1;text-align:center;padding:25px 10px;color:#667085;font-weight:700}
+@media(max-width:520px){.school-folder .school-folder-emoji{font-size:43px}.school-folder .school-folder-name{font-size:15px}.school-path{font-size:13px}}
+</style>
+<script id="school-folder-navigation-v2-script">
+(function(){
+ 'use strict';
+ const labelCat=cat=>{try{return adminCatName(cat)||cat.name}catch(e){return cat.name}};
+ function nav(cat,items,grid){
+   const base=readAdminBase();
+   const all=(base.subcategories||[]).filter(sc=>sc.category===cat.name&&!sc.deleted&&subcatVisible(sc));
+   let chosen=String(activeSubcategoryByCategory[cat.name]||'all');
+   let selected=chosen==='all'?null:all.find(sc=>String(sc.id)===chosen);
+   if(chosen!=='all'&&!selected){activeSubcategoryByCategory[cat.name]='all';selected=null}
+   const siblings=all.filter(sc=>String(sc.parentId||'')===String(selected?.id||''));
+   const path=[];let at=selected;const seen=new Set();
+   while(at&&!seen.has(String(at.id))){seen.add(String(at.id));path.unshift(at);at=all.find(sc=>String(sc.id)===String(at.parentId||''))}
+   const header=document.createElement('div');header.className='school-path';
+   if(selected){const back=document.createElement('button');back.type='button';back.className='school-back';back.textContent='← Retour';back.onclick=()=>{activeSubcategoryByCategory[cat.name]=selected.parentId||'all';renderGrid()};header.appendChild(back)}
+   const crumbs=document.createElement('span');crumbs.className='school-crumb';crumbs.textContent=[labelCat(cat),...path.map(sc=>sc.name)].join(' › ');header.appendChild(crumbs);grid.appendChild(header);
+   siblings.forEach(sc=>{const card=document.createElement('button');card.type='button';card.className='pic school-folder';const pic=document.createElement('span');pic.className='school-folder-emoji';pic.textContent=sc.icon||'📁';const title=document.createElement('span');title.className='school-folder-name';title.textContent=sc.name;const mark=document.createElement('span');mark.className='school-folder-mark';mark.textContent='Dossier ›';card.append(pic,title,mark);card.onclick=()=>{activeSubcategoryByCategory[cat.name]=sc.id;renderGrid();const main=document.querySelector('main');if(main)main.scrollTop=0};grid.appendChild(card)});
+   let kept=[];
+   if(selected){
+      const direct=new Set((selected.itemIds||[]).map(String));
+      kept=items.filter(x=>{
+        const ids=[permanentItemId(x),itemId2(x),x?.[3],x?.[6]].filter(Boolean).map(String);
+        const assigned=ids.some(id=>direct.has(id));
+        return assigned && !(typeof hiddenExactV218==='function'&&hiddenExactV218(x,cat,selected.id));
+      });
+   }else if(!all.length){kept=items}
+   else{
+      // Respecte la règle déjà validée en bêta 272 : à la racine, seuls les favoris.
+      kept=items.filter(x=>isFav(x));
+   }
+   if(!kept.length && !siblings.length){const empty=document.createElement('p');empty.className='school-empty';empty.textContent='Ce dossier est vide pour le moment.';grid.appendChild(empty)}
+   return kept;
+ }
+ window.renderSubcategoryFilters=nav;
+ try{renderSubcategoryFilters=nav}catch(e){}
+ const oldGrid=renderGrid;
+ renderGrid=function(){const result=oldGrid.apply(this,arguments);try{const grid=document.getElementById('grid');if(grid?.querySelector('.school-folder')){[...grid.children].forEach(child=>{if(child.textContent?.includes('Aucun favori dans cette catégorie'))child.remove()})}}catch(e){}return result};
+ window.renderGrid=renderGrid;
+ // Supprimer aussi l'accès à la gestion des débuts de phrases dans le tableau Admin.
+ const hideAdminStarters=()=>{const admin=document.getElementById('admin195');if(!admin)return;for(const b of admin.querySelectorAll('button')){const t=(b.textContent||'').trim();if(/^💬?\s*Débuts de phrases$/i.test(t)||t==='Débuts de phrases')b.style.display='none'}};
+ const observer=new MutationObserver(hideAdminStarters);observer.observe(document.body,{subtree:true,childList:true});hideAdminStarters();
+ try{document.querySelector('.starters')?.remove()}catch(e){}
+})();
+</script>
 </body></html>
