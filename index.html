@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b2a4a">
-<title>Ma CAA École — Bêta 9</title>
+<title>Ma CAA École — Bêta 10</title>
 <style>
 :root{--navy:#0b2a4a;--purple:#7042c1;--green:#2eaf58;--red:#ee4e45;--yellow:#ffd85a;--bg:#f5f7fb;--line:#dfe4ec}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:#111827}button,input{font:inherit}
@@ -79,6 +79,12 @@ button{min-height:44px;-webkit-tap-highlight-color:transparent}
 .ecole-gap-control9 input{width:min(260px,35vw);accent-color:#2563eb;cursor:pointer}
 .ecole-gap-control9 output{font-variant-numeric:tabular-nums;min-width:48px;text-align:right;color:#1e293b}
 @media(max-width:900px){.ecole-gap-control9{gap:7px;font-size:11px}.ecole-gap-control9 input{width:32vw}.ecole-gap-control9 output{min-width:42px}}
+
+/* Bêta 10 : plage élargie et repères explicites */
+.ecole-gap-control9 input{width:min(340px,35vw)}
+.ecole-gap-end10{font-size:11px;font-weight:600;color:#64748b}
+.ecole-gap-control9 output{min-width:55px}
+@media(max-width:650px){.ecole-gap-control9{flex-wrap:wrap}.ecole-gap-control9 input{width:35vw}.ecole-gap-end10{font-size:10px}}
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -221,11 +227,11 @@ function adminReturnToPictogramsStable(scrollY){
 <div class="app">
 <aside class="side"><div class="brand">🎒 Ma CAA École</div><nav id="nav" class="nav"></nav></aside>
 <main>
-<header class="phrasebar"><div id="phrase" class="phrase"><span class="hint">Glissez des pictogrammes ici pour composer des mots</span></div><div class="actions"><button class="speak" id="speak">🔊 PARLER</button><button class="readword" id="readword">📖 LIRE</button><button class="spaceword" id="spaceword" type="button" title="Ajouter un espace dans la barre">␣ ESPACE</button><button class="clear" id="clear">🗑 EFFACER</button></div><div class="ecole-gap-control9"><label for="ecoleGapUser9">⏱️ Pause entre les sons</label><input id="ecoleGapUser9" type="range" min="0" max="500" step="50" value="100" aria-label="Pause entre les pictogrammes en millisecondes"><output id="ecoleGapValue9" for="ecoleGapUser9">100 ms</output></div></header>
+<header class="phrasebar"><div id="phrase" class="phrase"><span class="hint">Glissez des pictogrammes ici pour composer des mots</span></div><div class="actions"><button class="speak" id="speak">🔊 PARLER</button><button class="readword" id="readword">📖 LIRE</button><button class="spaceword" id="spaceword" type="button" title="Ajouter un espace dans la barre">␣ ESPACE</button><button class="clear" id="clear">🗑 EFFACER</button></div><div class="ecole-gap-control9"><label for="ecoleGapUser9">⏱️ Pause entre les sons</label><span class="ecole-gap-end10">Rapide</span><input id="ecoleGapUser9" type="range" min="0" max="2000" step="50" value="100" aria-label="Régler la pause entre les pictogrammes de zéro à deux secondes"><span class="ecole-gap-end10">Lent</span><output id="ecoleGapValue9" for="ecoleGapUser9">0,10 s</output></div></header>
 <section class="content">
 <div class="head"><div><h1 id="title">Favoris</h1></div><input id="search" class="search" placeholder="🔎 Rechercher…"></div>
 <div class="starters"><strong>Débuts de phrase</strong><div id="starterrow" class="starterrow"></div></div>
-<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 9</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
+<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 10</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
 </section></main></div>
 <div class="bottom"><button id="cats">☰ Catégories</button><button class="speak" id="speak2">🔊 Parler</button><button class="clear" id="clear2">🗑 Effacer</button></div>
 <div id="feedback" class="feedback"></div><div id="drawer" class="drawer"><div class="sheet"><button class="x" id="close">✕</button><h2>Catégories</h2><nav id="nav2" class="nav"></nav></div></div>
@@ -3996,14 +4002,14 @@ function renderGrid(){closeSubmenuBubble();closeQuickChoicesBubble();ensureAdult
 }
 // Bêta 8 : silence entre les pictogrammes, indépendant de la vitesse de la voix.
 function ecolePauseBetween8(){
-  try{const raw=localStorage.getItem(profiledKey('ecole_sound_gap_beta8'));if(raw===null)return 100;const n=Number(raw);return Number.isFinite(n)&&n>=0&&n<=500?n:100}catch(e){return 100}
+  try{const raw=localStorage.getItem(profiledKey('ecole_sound_gap_beta8'));if(raw===null)return 100;const n=Number(raw);return Number.isFinite(n)&&n>=0&&n<=2000?n:100}catch(e){return 100}
 }
 function ecoleGapRefreshUser9(){
   const slider=document.getElementById('ecoleGapUser9');
   const output=document.getElementById('ecoleGapValue9');
   if(!slider||!output)return;
   slider.value=String(ecolePauseBetween8());
-  output.textContent=slider.value+' ms';
+  output.textContent=(Number(slider.value)/1000).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' s';
 }
 function ecoleGapInitUser9(){
   const slider=document.getElementById('ecoleGapUser9');
@@ -4011,7 +4017,7 @@ function ecoleGapInitUser9(){
   if(!slider||!output)return;
   ecoleGapRefreshUser9();
   slider.addEventListener('input',()=>{
-    output.textContent=slider.value+' ms';
+    output.textContent=(Number(slider.value)/1000).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' s';
     try{localStorage.setItem(profiledKey('ecole_sound_gap_beta8'),slider.value)}catch(e){}
   });
   // Recharger la valeur si le profil a changé depuis la dernière consultation.
@@ -4022,7 +4028,7 @@ function ecolePauseEditor8(){
   const panel=document.createElement('div');panel.className='editor';
   const title=document.createElement('h2');title.textContent='🔊 Pause entre les pictogrammes';
   const info=document.createElement('p');info.textContent='Réglage du profil actuel pour le bouton Parler. Les sons enregistrés gardent leur vitesse naturelle.';
-  const val=document.createElement('b');const slider=document.createElement('input');slider.type='range';slider.min='0';slider.max='500';slider.step='50';slider.value=String(ecolePauseBetween8());slider.style.cssText='width:100%;margin:16px 0';
+  const val=document.createElement('b');const slider=document.createElement('input');slider.type='range';slider.min='0';slider.max='2000';slider.step='50';slider.value=String(ecolePauseBetween8());slider.style.cssText='width:100%;margin:16px 0';
   const refresh=()=>val.textContent=slider.value+' ms';slider.oninput=refresh;refresh();
   const row=document.createElement('div');row.className='editor-row';
   const ok=document.createElement('button');ok.className='saveedit';ok.textContent='Enregistrer';ok.onclick=()=>{localStorage.setItem(profiledKey('ecole_sound_gap_beta8'),slider.value);overlay.remove()};
