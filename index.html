@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b2a4a">
-<title>Ma CAA École — Bêta 8</title>
+<title>Ma CAA École — Bêta 9</title>
 <style>
 :root{--navy:#0b2a4a;--purple:#7042c1;--green:#2eaf58;--red:#ee4e45;--yellow:#ffd85a;--bg:#f5f7fb;--line:#dfe4ec}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:#111827}button,input{font:inherit}
@@ -73,6 +73,12 @@ button{min-height:44px;-webkit-tap-highlight-color:transparent}
 /* Bêta 5 : repère discret de dépôt, aucun symbole superposé aux images */
 #phrase.ecole-drag-over5{border-color:#1976d2;background:#edf6ff;box-shadow:inset 0 0 0 2px #1976d2}
 .pic{cursor:grab}.pic:active{cursor:grabbing}
+
+/* Bêta 9 : réglage compact accessible sur l'écran utilisateur. */
+.ecole-gap-control9{display:flex;align-items:center;justify-content:center;gap:12px;font-size:13px;font-weight:700;color:#475569;padding:1px 2px 0}
+.ecole-gap-control9 input{width:min(260px,35vw);accent-color:#2563eb;cursor:pointer}
+.ecole-gap-control9 output{font-variant-numeric:tabular-nums;min-width:48px;text-align:right;color:#1e293b}
+@media(max-width:900px){.ecole-gap-control9{gap:7px;font-size:11px}.ecole-gap-control9 input{width:32vw}.ecole-gap-control9 output{min-width:42px}}
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -215,11 +221,11 @@ function adminReturnToPictogramsStable(scrollY){
 <div class="app">
 <aside class="side"><div class="brand">🎒 Ma CAA École</div><nav id="nav" class="nav"></nav></aside>
 <main>
-<header class="phrasebar"><div id="phrase" class="phrase"><span class="hint">Glissez des pictogrammes ici pour composer des mots</span></div><div class="actions"><button class="speak" id="speak">🔊 PARLER</button><button class="readword" id="readword">📖 LIRE</button><button class="spaceword" id="spaceword" type="button" title="Ajouter un espace dans la barre">␣ ESPACE</button><button class="clear" id="clear">🗑 EFFACER</button></div></header>
+<header class="phrasebar"><div id="phrase" class="phrase"><span class="hint">Glissez des pictogrammes ici pour composer des mots</span></div><div class="actions"><button class="speak" id="speak">🔊 PARLER</button><button class="readword" id="readword">📖 LIRE</button><button class="spaceword" id="spaceword" type="button" title="Ajouter un espace dans la barre">␣ ESPACE</button><button class="clear" id="clear">🗑 EFFACER</button></div><div class="ecole-gap-control9"><label for="ecoleGapUser9">⏱️ Pause entre les sons</label><input id="ecoleGapUser9" type="range" min="0" max="500" step="50" value="100" aria-label="Pause entre les pictogrammes en millisecondes"><output id="ecoleGapValue9" for="ecoleGapUser9">100 ms</output></div></header>
 <section class="content">
 <div class="head"><div><h1 id="title">Favoris</h1></div><input id="search" class="search" placeholder="🔎 Rechercher…"></div>
 <div class="starters"><strong>Débuts de phrase</strong><div id="starterrow" class="starterrow"></div></div>
-<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 8</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
+<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 9</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
 </section></main></div>
 <div class="bottom"><button id="cats">☰ Catégories</button><button class="speak" id="speak2">🔊 Parler</button><button class="clear" id="clear2">🗑 Effacer</button></div>
 <div id="feedback" class="feedback"></div><div id="drawer" class="drawer"><div class="sheet"><button class="x" id="close">✕</button><h2>Catégories</h2><nav id="nav2" class="nav"></nav></div></div>
@@ -3992,6 +3998,25 @@ function renderGrid(){closeSubmenuBubble();closeQuickChoicesBubble();ensureAdult
 function ecolePauseBetween8(){
   try{const raw=localStorage.getItem(profiledKey('ecole_sound_gap_beta8'));if(raw===null)return 100;const n=Number(raw);return Number.isFinite(n)&&n>=0&&n<=500?n:100}catch(e){return 100}
 }
+function ecoleGapRefreshUser9(){
+  const slider=document.getElementById('ecoleGapUser9');
+  const output=document.getElementById('ecoleGapValue9');
+  if(!slider||!output)return;
+  slider.value=String(ecolePauseBetween8());
+  output.textContent=slider.value+' ms';
+}
+function ecoleGapInitUser9(){
+  const slider=document.getElementById('ecoleGapUser9');
+  const output=document.getElementById('ecoleGapValue9');
+  if(!slider||!output)return;
+  ecoleGapRefreshUser9();
+  slider.addEventListener('input',()=>{
+    output.textContent=slider.value+' ms';
+    try{localStorage.setItem(profiledKey('ecole_sound_gap_beta8'),slider.value)}catch(e){}
+  });
+  // Recharger la valeur si le profil a changé depuis la dernière consultation.
+  window.addEventListener('focus',ecoleGapRefreshUser9);
+}
 function ecolePauseEditor8(){
   const overlay=document.createElement('div');overlay.className='editor-overlay';
   const panel=document.createElement('div');panel.className='editor';
@@ -4069,7 +4094,7 @@ function render(){
   el("title").textContent=cd.name;renderProfileBar();renderNav(el("nav"));renderNav(el("nav2"));renderGrid();renderPhrase();
 }
 starters.forEach(x=>{const b=document.createElement("button");b.className="starter";b.textContent=x[0]+" "+x[1];b.onclick=()=>add(x);el("starterrow").appendChild(b)});
-el("search").oninput=renderGrid;el("speak").onclick=el("speak2").onclick=speak;el("clear").onclick=el("clear2").onclick=()=>{phrase=[];renderPhrase()};el("readword").onclick=ecoleReadWhole6;
+ecoleGapInitUser9();el("search").oninput=renderGrid;el("speak").onclick=el("speak2").onclick=speak;el("clear").onclick=el("clear2").onclick=()=>{phrase=[];renderPhrase()};el("readword").onclick=ecoleReadWhole6;
 el("spaceword").onclick=()=>{ecolePhraseInsert6({icon:'',label:' ',speech:'',picto:null,isSpacer:true},phrase.length)};el("cats").onclick=()=>el("drawer").classList.add("open");el("close").onclick=()=>el("drawer").classList.remove("open");
 render();
 </script>
