@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b2a4a">
-<title>Ma CAA École — Bêta 14</title>
+<title>Ma CAA École — Bêta 15</title>
 <style>
 :root{--navy:#0b2a4a;--purple:#7042c1;--green:#2eaf58;--red:#ee4e45;--yellow:#ffd85a;--bg:#f5f7fb;--line:#dfe4ec}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:#111827}button,input{font:inherit}
@@ -233,7 +233,7 @@ function adminReturnToPictogramsStable(scrollY){
 <section class="content">
 <div class="head"><div><h1 id="title">Favoris</h1></div><input id="search" class="search" placeholder="🔎 Rechercher…"></div>
 <div class="starters"><strong>Débuts de phrase</strong><div id="starterrow" class="starterrow"></div></div>
-<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 14</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
+<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 15</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
 </section></main></div>
 <div class="bottom"><button id="cats">☰ Catégories</button><button class="speak" id="speak2">🔊 Parler</button><button class="clear" id="clear2">🗑 Effacer</button></div>
 <div id="feedback" class="feedback"></div><div id="drawer" class="drawer"><div class="sheet"><button class="x" id="close">✕</button><h2>Catégories</h2><nav id="nav2" class="nav"></nav></div></div>
@@ -244,6 +244,10 @@ const localPictos={};
 const starters=[];
 let current=0,phrase=[];
 const el=id=>document.getElementById(id);
+function ecoleFavAdminHidden15(){try{return !!readAdminBase().hideFavoritesV15}catch(e){return false}}
+function ecoleFavTeacherHidden15(){try{return localStorage.getItem(profiledKey('ma-caa-ecole-hide-favorites-v15'))==='1'}catch(e){return false}}
+function ecoleFavHidden15(){return ecoleFavAdminHidden15()||ecoleFavTeacherHidden15()}
+function ecoleFavSetTeacher15(on){try{localStorage.setItem(profiledKey('ma-caa-ecole-hide-favorites-v15'),on?'1':'0');localStorage.setItem('ma-caa-ecole-last-save',String(Date.now()))}catch(e){};try{render()}catch(e){}}
 function renderNav(target){target.innerHTML="";
 const favCatNames=readFavCats();
 const hiddenCatNames=readHiddenCats();
@@ -259,7 +263,7 @@ const catOrder=explicitProfileOrder.length
   : adminCatOrder251.length ? [...adminCatOrder251,...profileCatOrder.filter(n=>!adminCatOrder251.includes(n))] : profileCatOrder;
 const ordered=categories
   .map((c,i)=>({c,i}))
-  .filter(({c})=>c.name==="Favoris"||c.name==="Mode enseignants"||(!hiddenCatNames.includes(c.name)&&!adminHiddenCatNames.includes(c.name)&&!adminDeletedCatNames.includes(c.name)))
+  .filter(({c})=>(c.name==="Favoris"&&!ecoleFavHidden15())||c.name==="Mode enseignants"||(!hiddenCatNames.includes(c.name)&&!adminHiddenCatNames.includes(c.name)&&!adminDeletedCatNames.includes(c.name)))
   .sort((a,b)=>{
  if(a.c.name==="Favoris")return -1;if(b.c.name==="Favoris")return 1;
  if(a.c.name==="Mode enseignants")return 1;if(b.c.name==="Mode enseignants")return -1;
@@ -3921,7 +3925,13 @@ function adminManageSubcategories(cat){
    list.after(pick);
  }
  function addFolder(parent){const n=prompt(parent?"Nom du dossier dans « "+parent.name+" » :":"Nom du dossier :");if(!n)return;const name=n.trim();if(!name)return;chooseSubcategoryEmoji("Dossier : <b>"+name+"</b>","📁",chosen=>{const now=readAdminBase();now.subcategories=now.subcategories||[];const pid=parent?.id||"";let siblings=now.subcategories.filter(x=>x.category===cat.name&&!x.deleted&&(x.parentId||"")===pid); if(!siblings.length) siblings=allPermanentPictogramsV114();now.subcategories.push({id:"sc"+Date.now(),category:cat.name,parentId:pid,name,icon:chosen,itemIds:[],order:siblings.length,hidden:false});writeAdminBase(now);refresh()})}
- function refresh(){list.innerHTML="";const renderLevel=(parentId,depth)=>{adminSubcats(cat.name,parentId).forEach((sc,i,arr)=>{const row=document.createElement("div");row.style.cssText="display:grid;grid-template-columns:minmax(170px,1fr) auto;gap:8px;align-items:center;padding:9px 10px;margin:7px 0 7px "+Math.min(depth*28,112)+"px;border:1px solid #d8e0eb;border-radius:13px;background:"+(depth?"#f3f8ff":"#fff");const n=document.createElement("b");n.style.cssText="font-size:16px;display:flex;align-items:center;gap:8px";n.innerHTML="<span style='font-size:"+(depth?28:34)+"px'>"+(sc.icon||"📁")+"</span><span>"+(sc.hidden?"🙈 ":"")+sc.name+"<small style='display:block;color:#667085;font-weight:500'>Niveau "+(depth+1)+"</small></span>";const ac=document.createElement("div");ac.style.cssText="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end";ac.append(sm("➕📁",()=>addFolder(sc),"Ajouter un dossier dedans"),sm("📦",()=>window.ecoleMoveFolder14(sc,refresh),"Déplacer ce dossier"),sm("🧩",()=>pickItems(sc),"Pictogrammes"),sm("✏️",()=>{const nn=prompt("Nom :",sc.name);if(nn===null)return;const newName=nn.trim()||sc.name;chooseSubcategoryEmoji("Dossier : <b>"+newName+"</b>",sc.icon||"📁",e=>{const now=readAdminBase(),t=now.subcategories.find(x=>x.id===sc.id);t.name=newName;t.icon=e;writeAdminBase(now);refresh()})}),sm(sc.hidden?"👁️":"🙈",()=>{const now=readAdminBase(),t=now.subcategories.find(x=>x.id===sc.id);t.hidden=!t.hidden;writeAdminBase(now);refresh()}),sm("↑",()=>{if(i<1)return;const now=readAdminBase(),x=now.subcategories.find(v=>v.id===sc.id),p=now.subcategories.find(v=>v.id===arr[i-1].id);[p.order,x.order]=[x.order,p.order];writeAdminBase(now);refresh()}),sm("↓",()=>{if(i>=arr.length-1)return;const now=readAdminBase(),x=now.subcategories.find(v=>v.id===sc.id),p=now.subcategories.find(v=>v.id===arr[i+1].id);[p.order,x.order]=[x.order,p.order];writeAdminBase(now);refresh()}),sm("🗑️",()=>{if(!confirm("Supprimer ce dossier et ses sous-dossiers ?"))return;const now=readAdminBase(),ids=new Set([sc.id,...adminSubcatDescendants(sc).map(x=>x.id)]);now.subcategories.forEach(x=>{if(ids.has(x.id))x.deleted=true});writeAdminBase(now);refresh()}));row.append(n,ac);list.appendChild(row);renderLevel(sc.id,depth+1)})};renderLevel("",0)}
+ const openFolders15=new Set();
+ const folderToolbar15=document.createElement('div');folderToolbar15.style.cssText='display:flex;gap:8px;margin:10px 0';
+ folderToolbar15.append(sm('▾ Tout ouvrir',()=>{(readAdminBase().subcategories||[]).filter(x=>x.category===cat.name&&!x.deleted).forEach(x=>openFolders15.add(String(x.id)));refresh()}),sm('▸ Tout fermer',()=>{openFolders15.clear();refresh()}));
+ panel.insertBefore(folderToolbar15,list);
+ function refresh(){list.innerHTML="";const renderLevel=(parentId,depth)=>{adminSubcats(cat.name,parentId).forEach((sc,i,arr)=>{const row=document.createElement("div");row.style.cssText="display:grid;grid-template-columns:minmax(170px,1fr) auto;gap:8px;align-items:center;padding:9px 10px;margin:7px 0 7px "+Math.min(depth*28,112)+"px;border:1px solid #d8e0eb;border-radius:13px;background:"+(depth?"#f3f8ff":"#fff");const n=document.createElement("b");n.style.cssText="font-size:16px;display:flex;align-items:center;gap:8px";n.innerHTML="<span style='font-size:"+(depth?28:34)+"px'>"+(sc.icon||"📁")+"</span><span>"+(sc.hidden?"🙈 ":"")+sc.name+"<small style='display:block;color:#667085;font-weight:500'>Niveau "+(depth+1)+"</small></span>";const ac=document.createElement("div");ac.style.cssText="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end";ac.append(sm("➕📁",()=>addFolder(sc),"Ajouter un dossier dedans"),sm("📦",()=>window.ecoleMoveFolder14(sc,refresh),"Déplacer ce dossier"),sm("🧩",()=>pickItems(sc),"Pictogrammes"),sm("✏️",()=>{const nn=prompt("Nom :",sc.name);if(nn===null)return;const newName=nn.trim()||sc.name;chooseSubcategoryEmoji("Dossier : <b>"+newName+"</b>",sc.icon||"📁",e=>{const now=readAdminBase(),t=now.subcategories.find(x=>x.id===sc.id);t.name=newName;t.icon=e;writeAdminBase(now);refresh()})}),sm(sc.hidden?"👁️":"🙈",()=>{const now=readAdminBase(),t=now.subcategories.find(x=>x.id===sc.id);t.hidden=!t.hidden;writeAdminBase(now);refresh()}),sm("↑",()=>{if(i<1)return;const now=readAdminBase(),x=now.subcategories.find(v=>v.id===sc.id),p=now.subcategories.find(v=>v.id===arr[i-1].id);[p.order,x.order]=[x.order,p.order];writeAdminBase(now);refresh()}),sm("↓",()=>{if(i>=arr.length-1)return;const now=readAdminBase(),x=now.subcategories.find(v=>v.id===sc.id),p=now.subcategories.find(v=>v.id===arr[i+1].id);[p.order,x.order]=[x.order,p.order];writeAdminBase(now);refresh()}),sm("🗑️",()=>{if(!confirm("Supprimer ce dossier et ses sous-dossiers ?"))return;const now=readAdminBase(),ids=new Set([sc.id,...adminSubcatDescendants(sc).map(x=>x.id)]);now.subcategories.forEach(x=>{if(ids.has(x.id))x.deleted=true});writeAdminBase(now);refresh()}));const hasChildren15=adminSubcats(cat.name,sc.id).length>0;
+   if(hasChildren15){const toggle15=sm(openFolders15.has(String(sc.id))?'▾':'▸',()=>{openFolders15.has(String(sc.id))?openFolders15.delete(String(sc.id)):openFolders15.add(String(sc.id));refresh()},'Ouvrir / fermer les sous-dossiers');toggle15.style.minWidth='34px';n.prepend(toggle15)}
+   row.append(n,ac);list.appendChild(row);if(openFolders15.has(String(sc.id)))renderLevel(sc.id,depth+1)})};renderLevel("",0)}
  const add=document.createElement("button");add.className="saveedit";add.textContent="➕ Ajouter un dossier";add.onclick=()=>addFolder(null);const close=document.createElement("button");close.className="canceledit";close.textContent="Fermer";close.onclick=()=>{scheduleAdminBasePush();overlay.remove()};panel.append(add,close);overlay.appendChild(panel);document.body.appendChild(overlay);refresh()
 }
 function expandSubmenuEntries(parent){
@@ -5244,6 +5254,11 @@ function openAdminPanel(initialView="home"){
 
     if(view==="categories"){
       const sec=mkSection();sec.innerHTML="<h2>📁 Catégories et dossiers</h2><p style='color:#667085'>Clique sur une catégorie pour gérer ses pictogrammes et son arborescence de dossiers.</p>";
+      const favoritesVisibility15=document.createElement('label');favoritesVisibility15.style.cssText='display:flex;align-items:center;gap:12px;padding:15px 18px;background:#f6f9ff;border:1px solid #dbe4f0;border-radius:14px;margin:10px 0 18px;font-weight:750;cursor:pointer';
+      const favCheck15=document.createElement('input');favCheck15.type='checkbox';favCheck15.style.cssText='width:22px;height:22px;accent-color:#2563eb';favCheck15.checked=ecoleFavAdminHidden15();
+      const favText15=document.createElement('span');favText15.textContent='⭐ Masquer les Favoris dans tous les profils';
+      favCheck15.onchange=()=>{const b=readAdminBase();b.hideFavoritesV15=favCheck15.checked;writeAdminBase(b);renderNav(el('cats'));if(current===0&&favCheck15.checked){const n=categories.findIndex(c=>c.name!=='Favoris'&&c.name!=='Mode enseignants'&&!(readAdminBase().hiddenCats||[]).includes(c.name));if(n>=0)current=n;renderNav(el('cats'));renderGrid()}};
+      favoritesVisibility15.append(favCheck15,favText15);sec.appendChild(favoritesVisibility15);
       const cats=document.createElement("div");cats.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px";
       categories.filter(c=>c.name!=="Favoris"&&c.name!=="Mode enseignants").forEach(cat=>{
         const a=readAdminBase(),card=document.createElement("div");card.style.cssText="border:1px solid #dde4ee;border-radius:16px;padding:14px;background:#fbfcff";
@@ -11046,7 +11061,7 @@ function writeSubOrderFor253(subId,ids){
       b.innerHTML='<b>'+a[1]+' '+a[2]+'</b><small>'+a[3]+'</small>';b.onclick=()=>{section220=a[0];draw220(box)};tools.appendChild(b)
     });box.appendChild(tools);
     const seg=mk220('div','p220-seg');
-    [['pictos','Pictogrammes'],['phrases','Phrases']].forEach(a=>{const b=mk220('button',type220===a[0]?'active':'',a[1]);b.onclick=()=>{type220=a[0];draw220(box)};seg.appendChild(b)});
+    [['pictos','Pictogrammes']].forEach(a=>{const b=mk220('button',type220===a[0]?'active':'',a[1]);b.onclick=()=>{type220=a[0];draw220(box)};seg.appendChild(b)});
     box.appendChild(seg)
   }
 
@@ -11274,7 +11289,16 @@ function writeSubOrderFor253(subId,ids){
 
   function drawCustomize220(box){
     head220(box,'Personnaliser la vue','Visibilité, favoris et ordre des pictogrammes et phrases.');
+    type220='pictos';
     toolTabs220(box);
+    if(section220==='visibility'){
+      const favLine15=document.createElement('label');favLine15.style.cssText='display:flex;align-items:center;gap:10px;border:1px solid #dfe5ef;border-radius:12px;background:#fff;padding:12px 16px;margin:12px 0;font-weight:700';
+      const favBox15=document.createElement('input');favBox15.type='checkbox';favBox15.style.cssText='width:20px;height:20px;accent-color:#2563eb';favBox15.checked=ecoleFavTeacherHidden15();favBox15.disabled=ecoleFavAdminHidden15();
+      favBox15.onchange=()=>ecoleFavSetTeacher15(favBox15.checked);
+      const label15=document.createElement('span');label15.textContent='⭐ Masquer les Favoris uniquement pour ce profil';
+      favLine15.append(favBox15,label15);box.appendChild(favLine15);
+      if(favBox15.disabled){const info15=document.createElement('small');info15.textContent='Les Favoris sont déjà masqués par l’Administrateur pour tous les profils.';info15.style.color='#667085';box.appendChild(info15)}
+    }
     if(section220==='visibility') type220==='pictos'?pictosTree220(box,'visibility'):phrasesTree220(box,'visibility');
     if(section220==='favorites') type220==='pictos'?pictosTree220(box,'favorites'):phrasesTree220(box,'favorites');
     if(section220==='order') type220==='pictos'?orderPictos220(box):orderPhrases220(box)
@@ -11433,7 +11457,7 @@ function writeSubOrderFor253(subId,ids){
   function drawManage220(box){
     head220(box,'Créer / modifier / supprimer','Gère le contenu du profil.');
     const tabs=mk220('div','p220-manage-tabs');
-    [['pictos','Pictogrammes'],['cats','Catégories'],['subs','Sous-catégories'],['phrases','Phrases']].forEach(a=>{const b=mk220('button',manage220===a[0]?'active':'',a[1]);b.onclick=()=>{manage220=a[0];draw220(box)};tabs.appendChild(b)});box.appendChild(tabs);
+    [['pictos','Pictogrammes'],['cats','Catégories'],['subs','Sous-catégories']].forEach(a=>{const b=mk220('button',manage220===a[0]?'active':'',a[1]);b.onclick=()=>{manage220=a[0];draw220(box)};tabs.appendChild(b)});box.appendChild(tabs);
     if(manage220==='pictos')managePictos220(box);if(manage220==='cats')manageCategories220(box);if(manage220==='subs')manageSubs220(box);if(manage220==='phrases')managePhrases220(box)
   }
 
@@ -13945,9 +13969,7 @@ window.ecoleMoveCategory14=function(cat){
 const origEdit=adminEditCategory;
 adminEditCategory=function(cat){const r=origEdit.apply(this,arguments);const box=[...document.querySelectorAll('.editor-overlay .editor')].at(-1);if(box&&box.querySelector('h2')?.textContent.includes('Modifier la catégorie')){const b=document.createElement('button');b.type='button';b.className='canceledit';b.style.marginTop='12px';b.textContent='📦 Transformer en sous-catégorie / déplacer';b.onclick=()=>{const ov=box.closest('.editor-overlay');ov?.remove();window.ecoleMoveCategory14(cat)};box.appendChild(b)}return r};
 window.adminEditCategory=adminEditCategory;
-// Masquer les Favoris seulement en mode enfant, sans effacer les favoris enregistrés.
-function hideFavs14(){const nav=document.getElementById('cats');if(nav){[...nav.children].forEach(el=>{if(/Favoris/i.test(el.textContent||'')&&!el.textContent.includes('Mode enseignants'))el.style.display='none'})}}
-new MutationObserver(()=>hideFavs14()).observe(document.getElementById('cats')||document.body,{childList:true});hideFavs14();
+// Bêta 15 : visibilité des Favoris définie par les réglages Admin / Enseignants.
 })();
 </script>
 
