@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b2a4a">
-<title>Ma CAA École — Bêta 11</title>
+<title>Ma CAA École — Bêta 12</title>
 <style>
 :root{--navy:#0b2a4a;--purple:#7042c1;--green:#2eaf58;--red:#ee4e45;--yellow:#ffd85a;--bg:#f5f7fb;--line:#dfe4ec}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:#111827}button,input{font:inherit}
@@ -222,16 +222,17 @@ function adminReturnToPictogramsStable(scrollY){
 </style>
 
 
+<style id="ecoleBeta12Style">.ecole-card-actions12{display:flex;justify-content:center;gap:10px;margin-top:8px;position:relative;z-index:2}.ecole-card-action12{display:inline-flex;align-items:center;justify-content:center;width:42px;height:33px;border:1px solid #d5dce6;background:#fff;border-radius:22px;font-size:20px;line-height:1;cursor:pointer;user-select:none;touch-action:manipulation}.ecole-card-action12:hover,.ecole-card-action12:focus{background:#e9f2ff;outline:2px solid #d8e8ff}.pic .ecole-card-actions12{width:100%}</style>
 </head>
 <body>
 <div class="app">
 <aside class="side"><div class="brand">🎒 Ma CAA École</div><nav id="nav" class="nav"></nav></aside>
 <main>
-<header class="phrasebar"><div id="phrase" class="phrase"><span class="hint">Glissez des pictogrammes ici pour composer des mots</span></div><div class="actions"><button class="speak" id="speak">🔊 PARLER</button><button class="readword" id="readword">📖 LIRE</button><button class="spaceword" id="spaceword" type="button" title="Ajouter un espace dans la barre">␣ ESPACE</button><button class="clear" id="clear">🗑 EFFACER</button></div><div class="ecole-gap-control9"><label for="ecoleGapUser9">⏱️ Pause entre les sons</label><span class="ecole-gap-end10">Rapide</span><input id="ecoleGapUser9" type="range" min="0" max="2000" step="50" value="100" aria-label="Régler la pause entre les pictogrammes de zéro à deux secondes"><span class="ecole-gap-end10">Lent</span><output id="ecoleGapValue9" for="ecoleGapUser9">0,10 s</output></div></header>
+<header class="phrasebar"><div id="phrase" class="phrase"><span class="hint">Glissez des pictogrammes ici pour composer des mots</span></div><div class="actions"><button class="speak" id="speak">🔊 PARLER</button><button class="readword" id="readword">📖 LIRE</button><button class="spaceword" id="spaceword" type="button" title="Ajouter un espace dans la barre">␣ ESPACE</button><button class="clear" id="clear">🗑 EFFACER</button></div><div class="ecole-gap-control9"><label for="ecoleGapUser9">⏱️ Pause entre les sons</label><span class="ecole-gap-end10">Rapide</span><input id="ecoleGapUser9" type="range" min="0" max="2000" step="50" value="100" aria-label="Régler la pause entre les pictogrammes de zéro à deux secondes"><span class="ecole-gap-end10">Lent</span><output id="ecoleGapValue9" for="ecoleGapUser9">0,10 s</output></div><div class="ecole-gap-control9" style="margin-top:5px"><label for="ecoleRateUser12">🎵 Vitesse des sons</label><span class="ecole-gap-end10">0,75×</span><input id="ecoleRateUser12" type="range" min="0.75" max="2" step="0.05" value="1" aria-label="Vitesse de lecture des sons"><span class="ecole-gap-end10">2×</span><output id="ecoleRateValue12" for="ecoleRateUser12">1,00×</output></div></header>
 <section class="content">
 <div class="head"><div><h1 id="title">Favoris</h1></div><input id="search" class="search" placeholder="🔎 Rechercher…"></div>
 <div class="starters"><strong>Débuts de phrase</strong><div id="starterrow" class="starterrow"></div></div>
-<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 11</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
+<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 12</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
 </section></main></div>
 <div class="bottom"><button id="cats">☰ Catégories</button><button class="speak" id="speak2">🔊 Parler</button><button class="clear" id="clear2">🗑 Effacer</button></div>
 <div id="feedback" class="feedback"></div><div id="drawer" class="drawer"><div class="sheet"><button class="x" id="close">✕</button><h2>Catégories</h2><nav id="nav2" class="nav"></nav></div></div>
@@ -250,9 +251,11 @@ const adminHiddenCatNames=adminBaseNav248.hiddenCats||[];
 const adminDeletedCatNames=adminBaseNav248.deletedCats||[];
 const profileCatOrder=orderedCategoryNames();
 const adminCatOrder251=Array.isArray(adminBaseNav248.adminCategoryOrderV251)?adminBaseNav248.adminCategoryOrderV251:[];
-const catOrder=adminCatOrder251.length
-  ? [...adminCatOrder251,...profileCatOrder.filter(n=>!adminCatOrder251.includes(n))]
-  : profileCatOrder;
+// Profil enseignant personnalisé prioritaire ; base Admin pour les autres catégories.
+const explicitProfileOrder=readCatsOrder().filter(n=>profileCatOrder.includes(n));
+const catOrder=explicitProfileOrder.length
+  ? [...explicitProfileOrder,...adminCatOrder251.filter(n=>!explicitProfileOrder.includes(n)),...profileCatOrder.filter(n=>!explicitProfileOrder.includes(n)&&!adminCatOrder251.includes(n))]
+  : adminCatOrder251.length ? [...adminCatOrder251,...profileCatOrder.filter(n=>!adminCatOrder251.includes(n))] : profileCatOrder;
 const ordered=categories
   .map((c,i)=>({c,i}))
   .filter(({c})=>c.name==="Favoris"||c.name==="Mode enseignants"||(!hiddenCatNames.includes(c.name)&&!adminHiddenCatNames.includes(c.name)&&!adminDeletedCatNames.includes(c.name)))
@@ -2952,7 +2955,15 @@ function createNormalCard(x,box){
     star.onclick=(e)=>{e.stopPropagation();toggleFav(x)};
     b.appendChild(star);
   }
-  // Bêta 5 : clic = écouter ; glisser vers la barre = écouter et composer.
+  // Bêta 12 : commandes accessibles sous l'image, sans recouvrir le pictogramme.
+  // Le conteneur .pic est lui-même un bouton : utiliser des spans interactifs
+  // pour éviter l'imbrication invalide de boutons HTML.
+  const controls=document.createElement('span');controls.className='ecole-card-actions12';
+  const makeAction=(symbol,label,fn)=>{const c=document.createElement('span');c.className='ecole-card-action12';c.textContent=symbol;c.setAttribute('role','button');c.setAttribute('tabindex','0');c.setAttribute('aria-label',label);
+    const run=e=>{e.preventDefault();e.stopPropagation();fn()};c.addEventListener('click',run);c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){run(e)}});c.addEventListener('dragstart',e=>e.preventDefault());c.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});controls.appendChild(c)};
+  makeAction('🔊','Écouter le pictogramme',()=>ecoleAudioSpeakItem(x,spokenText(x)||displayItem(x)[2]||displayLabel(x)));
+  makeAction('＋','Ajouter le pictogramme',()=>ecoleDropPicto5(x));
+  b.appendChild(controls);
   ecoleBindPictoDrag5(b,x);
   b.onclick=(ev)=>{if(Date.now()-(window.__ecoleDragCompleted5||0)<650){ev.preventDefault();return}activateUserPicto246(x,b,ev)};
   box.appendChild(b);
@@ -3878,7 +3889,7 @@ function adminManageSubcategories(cat){
    pick.style.cssText="max-height:430px;overflow:auto;border:2px solid #d8e0eb;border-radius:14px;padding:12px;margin:10px 0;background:#fbfcff";
    pick.innerHTML="<b>🧩 Pictogrammes dans : "+adminSubcatPath(sc)+"</b>";
 
-   // Bêta 11 : navigateur d'affectation hiérarchique. L'état de sélection
+   // Bêta 12 : navigateur d'affectation hiérarchique. L'état de sélection
    // concerne uniquement le dossier de destination, jamais les autres dossiers.
    let entries=[];
    try{entries=adminPermanentEntries(cat)||[]}catch(e){console.warn(e)}
@@ -3999,6 +4010,15 @@ function renderGrid(){closeSubmenuBubble();closeQuickChoicesBubble();ensureAdult
   if(needHydrate259)scheduleUiHydration253(30);
 }
 // Bêta 8 : silence entre les pictogrammes, indépendant de la vitesse de la voix.
+function ecolePlaybackRate12(){
+  try{const n=Number(localStorage.getItem(profiledKey('ecole_playback_rate_beta12'))||1);return Number.isFinite(n)?Math.max(0.75,Math.min(2,n)):1}catch(e){return 1}
+}
+function ecoleInitRate12(){
+  const slider=document.getElementById('ecoleRateUser12'),value=document.getElementById('ecoleRateValue12');if(!slider||!value)return;
+  const refresh=()=>{slider.value=String(ecolePlaybackRate12());value.textContent=Number(slider.value).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+'×'};
+  refresh();slider.addEventListener('input',()=>{value.textContent=Number(slider.value).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+'×';try{localStorage.setItem(profiledKey('ecole_playback_rate_beta12'),slider.value)}catch(e){}});
+  window.addEventListener('focus',refresh);
+}
 function ecolePauseBetween8(){
   try{const raw=localStorage.getItem(profiledKey('ecole_sound_gap_beta8'));if(raw===null)return 100;const n=Number(raw);return Number.isFinite(n)&&n>=0&&n<=2000?n:100}catch(e){return 100}
 }
@@ -4067,7 +4087,7 @@ async function ecoleSpeakPhraseSequence6(){
     if(run!==ecolePhrasePlayback6)return;
     if(blob){
       await new Promise(async resolve=>{
-        const url=URL.createObjectURL(blob),a=new Audio(url);ecoleCurrentlyPlaying=a;
+        const url=URL.createObjectURL(blob),a=new Audio(url);a.playbackRate=ecolePlaybackRate12();ecoleCurrentlyPlaying=a;
         let done=false,timer=null;
         const finish=()=>{if(done)return;done=true;if(timer)clearTimeout(timer);a.pause();URL.revokeObjectURL(url);if(ecoleCurrentlyPlaying===a)ecoleCurrentlyPlaying=null;resolve()};
         a.onerror=finish;a.onended=finish;
@@ -4083,14 +4103,14 @@ async function ecoleSpeakPhraseSequence6(){
             while(last>first && Math.abs(ch[last])<0.008)last-=stride;
             if(first<last && (last-first)/sr>0.025){
               const begin=Math.max(0,first/sr-0.018),end=Math.min(decoded.duration,last/sr+0.045);
-              a.addEventListener('loadedmetadata',()=>{if(!done){try{a.currentTime=begin}catch(e){};timer=setTimeout(finish,Math.max(50,(end-begin)*1000+30))}},{once:true});
+              a.addEventListener('loadedmetadata',()=>{if(!done){try{a.currentTime=begin}catch(e){};timer=setTimeout(finish,Math.max(50,(end-begin)*1000/ecolePlaybackRate12()+30))}},{once:true});
             }
           }catch(e){/* Repli standard si décodage indisponible. */}
         }
         a.play().catch(finish);
       });
     }else if(p.speech){
-      await new Promise(resolve=>{if(!('speechSynthesis' in window)){resolve();return}const u=makeUtterance(p.speech);u.onend=resolve;u.onerror=resolve;speechSynthesis.speak(u)});
+      await new Promise(resolve=>{if(!('speechSynthesis' in window)){resolve();return}const u=makeUtterance(p.speech);u.rate=ecolePlaybackRate12();u.onend=resolve;u.onerror=resolve;speechSynthesis.speak(u)});
     }
     if(k<sequence.length-1 && run===ecolePhrasePlayback6){
       const gap=ecolePauseBetween8();if(gap)await new Promise(resolve=>setTimeout(resolve,gap));
@@ -4117,7 +4137,7 @@ function render(){
   el("title").textContent=cd.name;renderProfileBar();renderNav(el("nav"));renderNav(el("nav2"));renderGrid();renderPhrase();
 }
 starters.forEach(x=>{const b=document.createElement("button");b.className="starter";b.textContent=x[0]+" "+x[1];b.onclick=()=>add(x);el("starterrow").appendChild(b)});
-ecoleGapInitUser9();el("search").oninput=renderGrid;el("speak").onclick=el("speak2").onclick=speak;el("clear").onclick=el("clear2").onclick=()=>{phrase=[];renderPhrase()};el("readword").onclick=ecoleReadWhole6;
+ecoleGapInitUser9();ecoleInitRate12();el("search").oninput=renderGrid;el("speak").onclick=el("speak2").onclick=speak;el("clear").onclick=el("clear2").onclick=()=>{phrase=[];renderPhrase()};el("readword").onclick=ecoleReadWhole6;
 el("spaceword").onclick=()=>{ecolePhraseInsert6({icon:'',label:' ',speech:'',picto:null,isSpacer:true},phrase.length)};el("cats").onclick=()=>el("drawer").classList.add("open");el("close").onclick=()=>el("drawer").classList.remove("open");
 render();
 </script>
