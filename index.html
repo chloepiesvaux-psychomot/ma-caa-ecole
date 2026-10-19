@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b2a4a">
-<title>Ma CAA École — Bêta 12</title>
+<title>Ma CAA École — Bêta 13</title>
 <style>
 :root{--navy:#0b2a4a;--purple:#7042c1;--green:#2eaf58;--red:#ee4e45;--yellow:#ffd85a;--bg:#f5f7fb;--line:#dfe4ec}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:#111827}button,input{font:inherit}
@@ -223,6 +223,7 @@ function adminReturnToPictogramsStable(scrollY){
 
 
 <style id="ecoleBeta12Style">.ecole-card-actions12{display:flex;justify-content:center;gap:10px;margin-top:8px;position:relative;z-index:2}.ecole-card-action12{display:inline-flex;align-items:center;justify-content:center;width:42px;height:33px;border:1px solid #d5dce6;background:#fff;border-radius:22px;font-size:20px;line-height:1;cursor:pointer;user-select:none;touch-action:manipulation}.ecole-card-action12:hover,.ecole-card-action12:focus{background:#e9f2ff;outline:2px solid #d8e8ff}.pic .ecole-card-actions12{width:100%}</style>
+<style id="beta13-hide-repair">#image-rescue-255{display:none!important}</style>
 </head>
 <body>
 <div class="app">
@@ -232,7 +233,7 @@ function adminReturnToPictogramsStable(scrollY){
 <section class="content">
 <div class="head"><div><h1 id="title">Favoris</h1></div><input id="search" class="search" placeholder="🔎 Rechercher…"></div>
 <div class="starters"><strong>Débuts de phrase</strong><div id="starterrow" class="starterrow"></div></div>
-<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 12</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
+<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 13</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
 </section></main></div>
 <div class="bottom"><button id="cats">☰ Catégories</button><button class="speak" id="speak2">🔊 Parler</button><button class="clear" id="clear2">🗑 Effacer</button></div>
 <div id="feedback" class="feedback"></div><div id="drawer" class="drawer"><div class="sheet"><button class="x" id="close">✕</button><h2>Catégories</h2><nav id="nav2" class="nav"></nav></div></div>
@@ -8605,21 +8606,96 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     c.append(vis,n,edit,del);host.appendChild(c);
   }
 
+  // Bêta 13 : arbre de gestion sans mutation de la base ni des affectations.
+  const openPictoFolders13=new Set();
+  let selectedPictoCat13="";
   function renderPictos195(body){
     setTitle195("Pictogrammes");
-    const s=section195();s.innerHTML="<h2>🧩 Pictogrammes permanents</h2>";
-    const add=document.createElement("button");add.textContent="➕ Ajouter un pictogramme permanent";add.style.cssText="padding:11px 14px;border:0;border-radius:11px;background:#2eaf58;color:white;font-weight:900";add.onclick=()=>adminAddPictogram();s.appendChild(add);
+    const s=section195();s.innerHTML="<h2>🧩 Pictogrammes permanents</h2><p style='color:#667085'>Ouvre une catégorie ou un dossier pour afficher ses pictogrammes directs. Les images et les commandes Modifier / Supprimer sont conservées.</p>";
+    const add=document.createElement("button");add.textContent="➕ Ajouter un pictogramme permanent";
+    add.style.cssText="padding:11px 14px;border:0;border-radius:11px;background:#2eaf58;color:white;font-weight:900";
+    add.onclick=()=>adminAddPictogram();s.appendChild(add);
+    const search=document.createElement("input");search.type="search";
+    search.placeholder="🔎 Rechercher un pictogramme dans la catégorie…";
+    search.style.cssText="display:block;width:100%;box-sizing:border-box;padding:12px;margin:12px 0;border:1px solid #d9e0ea;border-radius:12px";
+    s.appendChild(search);
     const nav=document.createElement("div");nav.className="catrow";s.appendChild(nav);
-    const host=document.createElement("div");host.className="grid";s.appendChild(host);
-    const baseP195=readAdminBase();
-    const cats=categories.filter(c=>c.name!=="Favoris"&&c.name!=="Mode enseignants"&&!(baseP195.deletedCats||[]).includes(c.name));
-    if(!selectedCat195||!cats.some(c=>c.name===selectedCat195.name))selectedCat195=cats[0]||null;
-    cats.forEach(cat=>{const b=document.createElement("button");b.textContent=adminCatIcon(cat)+" "+adminCatName(cat);b.onclick=()=>{selectedCat195=cat;render195("pictos")};nav.appendChild(b)});
-    if(selectedCat195){
-      const entries=adminPermanentEntries(selectedCat195);
-      entries.forEach((e,i)=>entryCard195(e,selectedCat195,host,i,entries.length));
+    const host=document.createElement("div");host.style.cssText="margin-top:12px";s.appendChild(host);
+    const base=readAdminBase();
+    const cats=categories.filter(c=>c.name!=="Favoris"&&c.name!=="Mode enseignants"&&!(base.deletedCats||[]).includes(c.name));
+    if(!selectedPictoCat13||!cats.some(c=>c.name===selectedPictoCat13))selectedPictoCat13=cats[0]?.name||"";
+    const chosen=cats.find(c=>c.name===selectedPictoCat13);
+    cats.forEach(cat=>{
+      const b=document.createElement("button");b.textContent=adminCatIcon(cat)+" "+adminCatName(cat);
+      if(cat.name===selectedPictoCat13)b.style.cssText="border:3px solid #244b7a;background:#e8f0ff;font-weight:900";
+      b.onclick=()=>{selectedPictoCat13=cat.name;render195("pictos")};nav.appendChild(b);
+    });
+    if(!chosen){body.appendChild(s);return}
+    const entries=adminPermanentEntries(chosen);
+    const folders=(base.subcategories||[]).filter(sc=>sc.category===chosen.name&&!sc.deleted);
+    const folderIds=new Set(folders.map(sc=>String(sc.id)));
+    const byId=new Map(entries.map(e=>[String(e.id),e]));
+    const direct=new Map();const assigned=new Set();
+    folders.forEach(sc=>{
+      const ids=new Set((sc.itemIds||[]).map(String));
+      const rows=entries.filter(e=>ids.has(String(e.id)));
+      direct.set(String(sc.id),rows);
+      rows.forEach(e=>assigned.add(String(e.id)));
+    });
+    const atRoot=entries.filter(e=>!assigned.has(String(e.id)));
+    const q=search.value.trim().toLocaleLowerCase("fr");
+    function draw(){
+      host.innerHTML="";
+      const query=search.value.trim().toLocaleLowerCase("fr");
+      const match=e=>!query||String(e.label||"").toLocaleLowerCase("fr").includes(query);
+      let matchCount=0;
+      function gridFor(rows,target){
+        const visible=rows.filter(match);if(!visible.length)return;
+        matchCount+=visible.length;
+        const grid=document.createElement("div");grid.className="grid";
+        grid.style.cssText="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px;margin:10px 0 16px";
+        visible.forEach((e,i)=>entryCard195(e,chosen,grid,i,visible.length));
+        target.appendChild(grid);
+      }
+      function folderNode(sc,depth,visited){
+        if(visited.has(String(sc.id)))return null; // Prevent malformed cycle from hanging the interface.
+        const children=folders.filter(c=>String(c.parentId||"")===String(sc.id));
+        const rows=direct.get(String(sc.id))||[];
+        const descendantMatch=(node,seen)=>{
+          if(seen.has(String(node.id)))return false;
+          const seen2=new Set(seen);seen2.add(String(node.id));
+          return (direct.get(String(node.id))||[]).some(match)||folders.filter(c=>String(c.parentId||"")===String(node.id)).some(c=>descendantMatch(c,seen2));
+        };
+        if(query&&!descendantMatch(sc,new Set()))return null;
+        const box=document.createElement("div");box.style.cssText="margin:8px 0 8px "+(Math.min(depth,7)*14)+"px;border-left:3px solid #dce6f3;padding-left:10px";
+        const head=document.createElement("button");head.type="button";
+        head.style.cssText="display:flex;gap:8px;align-items:center;width:100%;text-align:left;padding:10px 13px;border:1px solid #d5deeb;border-radius:11px;background:#f2f6fd;color:#243b64;font-weight:850;cursor:pointer";
+        const id=String(sc.id),expanded=query||openPictoFolders13.has(id);
+        head.textContent=(expanded?"▾ ":"▸ ")+(sc.icon||"📁")+" "+sc.name;
+        const content=document.createElement("div");content.style.cssText="padding:5px 0 2px 2px";
+        content.hidden=!expanded;
+        head.onclick=()=>{if(openPictoFolders13.has(id))openPictoFolders13.delete(id);else openPictoFolders13.add(id);draw()};
+        box.append(head,content);
+        if(expanded){
+          gridFor(rows,content);
+          const nextSeen=new Set(visited);nextSeen.add(id);
+          children.sort((a,b)=>(Number(a.order)||0)-(Number(b.order)||0)).forEach(c=>{const n=folderNode(c,depth+1,nextSeen);if(n)content.appendChild(n)});
+          if(!rows.length&&!children.length){const empty=document.createElement("small");empty.textContent="Aucun pictogramme dans ce dossier";empty.style.color="#7b8494";content.appendChild(empty)}
+        }
+        return box;
+      }
+      const rootHead=document.createElement("div");rootHead.style.cssText="font-weight:900;background:#eaf0ff;border-radius:11px;padding:12px;margin:10px 0";
+      rootHead.textContent=(chosen.icon||"📁")+" "+adminCatName(chosen);host.appendChild(rootHead);
+      const rootTitle=document.createElement("div");rootTitle.textContent="Pictogrammes directement dans la catégorie";rootTitle.style.cssText="font-size:13px;font-weight:800;color:#667085;margin:10px 0";host.appendChild(rootTitle);
+      gridFor(atRoot,host);
+      const roots=folders.filter(sc=>!sc.parentId||!folderIds.has(String(sc.parentId))).sort((a,b)=>(Number(a.order)||0)-(Number(b.order)||0));
+      roots.forEach(sc=>{const n=folderNode(sc,0,new Set());if(n)host.appendChild(n)});
+      if(!query&&!entries.length){const empty=document.createElement("p");empty.textContent="Aucun pictogramme dans cette catégorie.";host.appendChild(empty)}
+      if(query&&!matchCount){const empty=document.createElement("p");empty.textContent="Aucun pictogramme ne correspond à la recherche.";host.appendChild(empty)}
+      scheduleUiHydration253(35);
     }
-    body.appendChild(s);scheduleUiHydration253(35);
+    search.oninput=draw;
+    draw();body.appendChild(s);
   }
 
   function renderCategories195(body){
@@ -12466,6 +12542,7 @@ function writeSubOrderFor253(subId,ids){
   }
 
   function addButton255(){
+    return; // Bêta 13 : bouton masqué sans supprimer la routine de récupération.
     if(document.getElementById("image-rescue-255"))return;
     const b=document.createElement("button");
     b.id="image-rescue-255";
