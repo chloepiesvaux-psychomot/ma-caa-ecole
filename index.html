@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b2a4a">
-<title>Ma CAA École — Bêta 16</title>
+<title>Ma CAA École — Bêta 17</title>
 <style>
 :root{--navy:#0b2a4a;--purple:#7042c1;--green:#2eaf58;--red:#ee4e45;--yellow:#ffd85a;--bg:#f5f7fb;--line:#dfe4ec}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:#111827}button,input{font:inherit}
@@ -233,7 +233,7 @@ function adminReturnToPictogramsStable(scrollY){
 <section class="content">
 <div class="head"><div><h1 id="title">Favoris</h1></div><input id="search" class="search" placeholder="🔎 Rechercher…"></div>
 <div class="starters"><strong>Débuts de phrase</strong><div id="starterrow" class="starterrow"></div></div>
-<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 16</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
+<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 17</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
 </section></main></div>
 <div class="bottom"><button id="cats">☰ Catégories</button><button class="speak" id="speak2">🔊 Parler</button><button class="clear" id="clear2">🗑 Effacer</button></div>
 <div id="feedback" class="feedback"></div><div id="drawer" class="drawer"><div class="sheet"><button class="x" id="close">✕</button><h2>Catégories</h2><nav id="nav2" class="nav"></nav></div></div>
@@ -14004,6 +14004,115 @@ window.adminEditCategory=adminEditCategory;
  window.ecoleUpdateFavorites16=sync;
  const observer=new MutationObserver(()=>sync());
  document.addEventListener('DOMContentLoaded',()=>{const a=document.getElementById('nav'),b=document.getElementById('nav2');for(const n of [a,b])if(n)observer.observe(n,{childList:true,subtree:false});sync()});
+})();
+</script>
+<style id="ecole17-style">
+#ecole17-exit{margin-left:7px;background:#ef4444;color:white;border:0;border-radius:9px;padding:6px 10px;font-weight:900;cursor:pointer;flex-shrink:0}
+#ecole17-access{width:100%;margin-top:8px;background:#e6efff;border:1px solid #aac5f0;border-radius:9px;padding:8px 6px;font-size:12px;font-weight:800;color:#183960;cursor:pointer}
+.ecole17-access-box{border:1px solid #c5d5ea;border-radius:12px;padding:13px;background:#f8fbff;margin-top:10px}
+.ecole17-access-box select{padding:8px;border-radius:8px;border:1px solid #aebed3;min-width:125px}
+</style>
+<script id="ecole17-session-access">
+(function(){
+ 'use strict';
+ const SESSION='ma-caa-ecole-profile-open-v17';
+ const FREE='ma-caa-ecole-temporary-user-access-v17::';
+ const PERIODS=[[1,'1 min'],[5,'5 min'],[10,'10 min'],[20,'20 min'],[30,'30 min'],[45,'45 min'],[60,'1h00'],[90,'1h30'],[120,'2h00']];
+ let explicitHome=false;
+ function deadline(id){try{return Number(localStorage.getItem(FREE+String(id))||'0')||0}catch(e){return 0}}
+ function currentId(){try{return activeProfile()}catch(e){return ''}}
+ function showError(){alert('Impossible de sauvegarder ce réglage : l’espace de stockage de Safari est saturé. Ne supprime pas les données du navigateur.')} 
+ function write(key,val){try{localStorage.setItem(key,val);return true}catch(e){showError();return false}}
+ function profileOpened(){try{return localStorage.getItem(SESSION)===String(currentId())}catch(e){return false}}
+ function markOpened(){write(SESSION,String(currentId()))}
+ const originalPin=window.requireUserPin;
+ if(typeof originalPin==='function'){
+   window.requireUserPin=function(profile,done){
+     const completion=()=>{done();markOpened();refresh()};
+     if(profile && Date.now()<deadline(profile.id)){completion();return}
+     originalPin(profile,completion);
+   };
+   try{requireUserPin=window.requireUserPin}catch(e){}
+ }
+ const originalHome=window.openUserHome;
+ if(typeof originalHome==='function'){
+   window.openUserHome=function(){if(!explicitHome && profileOpened())return;return originalHome()};
+   try{openUserHome=window.openUserHome}catch(e){}
+ }
+ function exitProfile(){
+   if(!confirm('Quitter le profil et revenir à la sélection des utilisateurs ?'))return;
+   try{localStorage.removeItem(SESSION)}catch(e){}
+   try{if(typeof adultUnlocked!=='undefined'&&adultUnlocked&&typeof lockAdult==='function')lockAdult()}catch(e){}
+   explicitHome=true;try{originalHome()}finally{explicitHome=false}
+   refresh();
+ }
+ function showPanel(){
+   if(!window.adultUnlocked && (typeof adultUnlocked==='undefined'||!adultUnlocked))return;
+   const ov=document.createElement('div');ov.className='editor-overlay';ov.style.zIndex='1500010';
+   const p=document.createElement('div');p.className='editor';p.style.maxWidth='490px';
+   const title=document.createElement('h2');title.textContent='🔓 Accès temporaire au profil utilisateur';p.append(title);
+   const explanation=document.createElement('p');explanation.textContent='Seule la demande du code pour OUVRIR le profil est suspendue sur cet appareil. Le code Enseignants et le code Administrateur restent inchangés.';p.append(explanation);
+   const line=document.createElement('div');line.className='ecole17-access-box';
+   const lbl=document.createElement('label');lbl.textContent='⏱️ Temps : ';lbl.style.fontWeight='bold';const sel=document.createElement('select');
+   PERIODS.forEach(([minutes,label])=>{const opt=document.createElement('option');opt.value=String(minutes);opt.textContent=label;sel.append(opt)});sel.value='5';line.append(lbl,sel);p.append(line);
+   const status=document.createElement('p');status.style.fontSize='13px';p.append(status);
+   function update(){const d=deadline(currentId());status.textContent=d>Date.now()?'Accès sans code actif jusqu’à '+new Date(d).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+' sur cet appareil.':'Accès sans code inactif.'}
+   update();
+   const row=document.createElement('div');row.className='editor-row';
+   const start=document.createElement('button');start.className='saveedit';start.textContent='🔓 Activer';
+   start.onclick=()=>{const until=Date.now()+Number(sel.value)*60000;if(write(FREE+currentId(),String(until))){update();refresh()}};
+   const stop=document.createElement('button');stop.className='canceledit';stop.textContent='🔒 Arrêter';stop.onclick=()=>{try{localStorage.removeItem(FREE+currentId())}catch(e){}update();refresh()};
+   const close=document.createElement('button');close.className='canceledit';close.textContent='Fermer';close.onclick=()=>ov.remove();
+   row.append(start,stop,close);p.append(row);ov.append(p);document.body.append(ov);
+ }
+ function refresh(){
+   const slot=document.getElementById('side-user-203');
+   if(slot){
+     slot.style.display='flex';slot.style.alignItems='center';slot.style.justifyContent='space-between';
+     slot.onclick=null;slot.onkeydown=null;slot.removeAttribute('role');slot.removeAttribute('tabindex');slot.title='Profil actif';
+     let exit=slot.querySelector('#ecole17-exit');
+     if(!exit){exit=document.createElement('button');exit.id='ecole17-exit';exit.type='button';exit.textContent='✕';exit.title='Quitter le profil';slot.append(exit)}
+     exit.onclick=e=>{e.stopPropagation();exitProfile()};
+   }
+   let teacher=false;
+   try{teacher=!!adultUnlocked}catch(e){}
+   let access=document.getElementById('ecole17-access');
+   if(teacher&&slot){
+     if(!access){access=document.createElement('button');access.id='ecole17-access';access.type='button';access.textContent='🔓 Accès utilisateur temporaire';slot.insertAdjacentElement('afterend',access)}
+     access.onclick=showPanel;
+   }else if(access)access.remove();
+ }
+ const oldBar=window.renderProfileBar;
+ if(typeof oldBar==='function'){
+   window.renderProfileBar=function(){const res=oldBar.apply(this,arguments);refresh();return res};
+   try{renderProfileBar=window.renderProfileBar}catch(e){}
+ }
+ const oldAdmin=window.renderAdmin195;
+ if(typeof oldAdmin==='function'){
+   window.renderAdmin195=function(){const res=oldAdmin.apply(this,arguments);
+     const root=document.getElementById('admin195');if(!root)return res;
+     const sections=root.querySelectorAll('.body .piccard');
+     for(const card of sections){
+       if(card.querySelector('.ecole17-move'))continue;
+       const edit=[...card.querySelectorAll('button')].find(b=>(b.textContent||'').includes('Modifier catégorie'));
+       const folder=[...card.querySelectorAll('button')].find(b=>(b.textContent||'').includes('Arborescence'));
+       if(!edit||!folder)continue;
+       const label=(card.querySelector('b')?.textContent||'').trim();
+       const cat=categories.find(c=>c.name!=='Favoris'&&c.name!=='Mode enseignants'&&((adminCatIcon(c)+' '+adminCatName(c)).trim()===label));
+       if(!cat)continue;
+       const move=document.createElement('button');move.className='ecole17-move';move.textContent='📦 Déplacer';
+       move.onclick=()=>{if(typeof window.ecoleMoveCategory14==='function')window.ecoleMoveCategory14(cat)};
+       card.insertBefore(move,folder);
+     }
+     return res;
+   };
+   try{renderAdmin195=window.renderAdmin195}catch(e){}
+ }
+ document.addEventListener('DOMContentLoaded',()=>{
+   refresh();
+   // Le retour depuis la veille garde le profil ouvert. Aucune expiration automatique de session.
+   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
+ });
 })();
 </script>
 </body></html>
