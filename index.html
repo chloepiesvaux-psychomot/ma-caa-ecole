@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b2a4a">
-<title>Ma CAA École — Bêta 18</title>
+<title>Ma CAA École — Bêta 19</title>
 <style>
 :root{--navy:#0b2a4a;--purple:#7042c1;--green:#2eaf58;--red:#ee4e45;--yellow:#ffd85a;--bg:#f5f7fb;--line:#dfe4ec}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:#111827}button,input{font:inherit}
@@ -233,7 +233,7 @@ function adminReturnToPictogramsStable(scrollY){
 <section class="content">
 <div class="head"><div><h1 id="title">Favoris</h1></div><input id="search" class="search" placeholder="🔎 Rechercher…"></div>
 <div class="starters"><strong>Débuts de phrase</strong><div id="starterrow" class="starterrow"></div></div>
-<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 18</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
+<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 19</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
 </section></main></div>
 <div class="bottom"><button id="cats">☰ Catégories</button><button class="speak" id="speak2">🔊 Parler</button><button class="clear" id="clear2">🗑 Effacer</button></div>
 <div id="feedback" class="feedback"></div><div id="drawer" class="drawer"><div class="sheet"><button class="x" id="close">✕</button><h2>Catégories</h2><nav id="nav2" class="nav"></nav></div></div>
@@ -14079,7 +14079,7 @@ window.adminEditCategory=adminEditCategory;
    let access=document.getElementById('ecole17-access');
    if(teacher&&slot){
      if(!access){access=document.createElement('button');access.id='ecole17-access';access.type='button';access.textContent='🔓 Accès utilisateur temporaire';slot.insertAdjacentElement('afterend',access)}
-     access.onclick=showPanel;
+     access.style.display='none';access.onclick=showPanel;
    }else if(access)access.remove();
  }
  const oldBar=window.renderProfileBar;
@@ -14124,49 +14124,70 @@ window.adminEditCategory=adminEditCategory;
 .ecole18-profile-access button.ecole18-enable{background:#2ab35a;color:white}
 .ecole18-profile-access select{padding:8px;border:1px solid #9badc8;border-radius:9px;margin-left:7px}
 </style>
-<script id="ecole18-fixes">
+<script id="ecole19-access-toggle">
 (function(){
  'use strict';
- const FREE='ma-caa-ecole-temporary-user-access-v17::';
- const PERIODS=[[1,'1 min'],[5,'5 min'],[10,'10 min'],[20,'20 min'],[30,'30 min'],[45,'45 min'],[60,'1h00'],[90,'1h30'],[120,'2h00']];
- const current=()=>{try{return String(activeProfile())}catch(e){return ''}};
- function saveUntil(value){try{localStorage.setItem(FREE+current(),String(value));return true}catch(e){alert('Stockage Safari saturé : le réglage n’a pas été enregistré. Ne vide pas les données Safari.');return false}}
+ // Compatibility with v17 PIN check: a distant expiration means the code is
+ // disabled until an authorized teacher explicitly re-enables it.
+ const KEY='ma-caa-ecole-temporary-user-access-v17::';
+ const FOREVER=9999999999999;
+ const profileId=()=>{try{return String(activeProfile())}catch(e){return ''}};
+ function isFree(){try{return Number(localStorage.getItem(KEY+profileId())||0)>Date.now()}catch(e){return false}}
+ function setFree(enabled){
+   const key=KEY+profileId();
+   try{
+     // Reuse existing key rather than duplicating settings in saturated storage.
+     if(enabled)localStorage.setItem(key,String(FOREVER));
+     else localStorage.removeItem(key);
+     return true;
+   }catch(e){alert('Enregistrement impossible : stockage Safari saturé. Le réglage n’a pas été changé. Ne vide pas les données Safari.');return false}
+ }
  function injectTeacher(){
-  const grid=document.querySelector('#grid.parent220');if(!grid)return;
-  const title=[...grid.querySelectorAll('h1,h2')].find(el=>el.textContent.trim()==='Profil');
-  if(!title||grid.querySelector('.ecole18-profile-access'))return;
-  const card=document.createElement('section');card.className='ecole18-profile-access';
-  const h=document.createElement('h3');h.textContent='🔓 Accès utilisateur temporaire sans code';card.append(h);
-  const help=document.createElement('p');help.textContent='Sur cet appareil uniquement : permet d’ouvrir le profil utilisateur sans son code pendant la durée choisie. Les codes Enseignants et Administrateur restent nécessaires.';card.append(help);
-  const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;flex-wrap:wrap;gap:7px';
-  const lab=document.createElement('label');lab.textContent='⏱️ Temps :';lab.htmlFor='ecole18-duration';
-  const sel=document.createElement('select');sel.id='ecole18-duration';PERIODS.forEach(([n,l])=>{const o=document.createElement('option');o.value=String(n);o.textContent=l;sel.append(o)});sel.value='5';row.append(lab,sel);card.append(row);
-  const status=document.createElement('p');status.style.cssText='font-size:13px;margin:8px 0;color:#526079';
-  const update=()=>{let time=0;try{time=Number(localStorage.getItem(FREE+current())||0)}catch(e){};status.textContent=time>Date.now()?'Actif jusqu’à '+new Date(time).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+' sur cet appareil.':'Accès libre inactif.'};
-  const yes=document.createElement('button');yes.className='ecole18-enable';yes.textContent='🔓 Activer';yes.onclick=()=>{if(saveUntil(Date.now()+Number(sel.value)*60000))update()};
-  const no=document.createElement('button');no.textContent='🔒 Désactiver';no.onclick=()=>{if(saveUntil(0))update()};
-  card.append(status,yes,no);update();
-  const cards=grid.querySelector('.p220-homegrid');if(cards)cards.before(card);else grid.append(card);
+   const grid=document.querySelector('#grid.parent220');if(!grid)return;
+   const title=[...grid.querySelectorAll('h1,h2')].find(el=>el.textContent.trim()==='Profil');
+   if(!title)return;
+   grid.querySelectorAll('.ecole18-profile-access,.ecole19-profile-access').forEach(e=>e.remove());
+   const card=document.createElement('section');card.className='ecole19-profile-access';
+   const heading=document.createElement('h3');heading.textContent='🔓 Accès au profil utilisateur';card.append(heading);
+   const label=document.createElement('label');label.className='ecole19-toggle-label';
+   const input=document.createElement('input');input.type='checkbox';input.checked=isFree();input.setAttribute('aria-label','Accès sans code');
+   label.append(input,document.createTextNode(' Accès sans code'));card.append(label);
+   const status=document.createElement('p');status.className='ecole19-status';card.append(status);
+   const note=document.createElement('p');note.className='ecole19-note';note.textContent='Ce réglage concerne uniquement ce profil sur cet appareil pour le moment. Les codes Enseignants et Administrateur restent obligatoires.';card.append(note);
+   const update=()=>{status.textContent=input.checked?'🔓 Le profil utilisateur peut être ouvert sans code.':'🔒 Le code utilisateur est obligatoire à l’ouverture du profil.'};update();
+   input.addEventListener('change',()=>{if(!setFree(input.checked))input.checked=!input.checked;update()});
+   const cards=grid.querySelector('.p220-homegrid');if(cards)cards.before(card);else title.insertAdjacentElement('afterend',card);
  }
  function injectAdmin(){
-  const admin=document.getElementById('admin195');if(!admin||!document.getElementById('title195')?.textContent.includes('Catégories et dossiers'))return;
-  const base=typeof readAdminBase==='function'?readAdminBase():{};
-  const active=categories.filter(c=>c.name!=='Favoris'&&c.name!=='Mode enseignants'&&!(base.deletedCats||[]).includes(c.name));
-  const cards=[...admin.querySelectorAll('.body .piccard')].filter(c=>[...c.querySelectorAll('button')].some(b=>b.textContent.includes('Modifier catégorie')));
-  cards.forEach((card,i)=>{
-    if(card.querySelector('.ecole18-move'))return;
-    const folder=[...card.querySelectorAll('button')].find(b=>b.textContent.includes('Arborescence'));if(!folder)return;
-    const title=card.querySelector('b')?.textContent?.trim();
-    const cat=active.find(c=>(String(adminCatIcon(c))+' '+String(adminCatName(c))).trim()===title)||active[i];if(!cat)return;
-    const btn=document.createElement('button');btn.type='button';btn.className='ecole18-move';btn.textContent='📦 Déplacer';
-    btn.onclick=()=>{if(typeof window.ecoleMoveCategory14==='function')window.ecoleMoveCategory14(cat);else alert('Fonction Déplacer indisponible : aucune donnée modifiée.')};
-    card.insertBefore(btn,folder);
-  });
+   const admin=document.getElementById('admin195');if(!admin||!document.getElementById('title195')?.textContent.includes('Catégories et dossiers'))return;
+   const base=typeof readAdminBase==='function'?readAdminBase():{};
+   const active=categories.filter(c=>c.name!=='Favoris'&&c.name!=='Mode enseignants'&&!(base.deletedCats||[]).includes(c.name));
+   const cards=[...admin.querySelectorAll('.body .piccard')].filter(c=>[...c.querySelectorAll('button')].some(b=>b.textContent.includes('Modifier catégorie')));
+   cards.forEach((card,i)=>{
+     if(card.querySelector('.ecole18-move,.ecole17-move,.ecole19-move'))return;
+     const folder=[...card.querySelectorAll('button')].find(b=>b.textContent.includes('Arborescence'));if(!folder)return;
+     const name=card.querySelector('b')?.textContent?.trim();
+     const cat=active.find(c=>(String(adminCatIcon(c))+' '+String(adminCatName(c))).trim()===name)||active[i];if(!cat)return;
+     const btn=document.createElement('button');btn.type='button';btn.className='ecole19-move';btn.textContent='📦 Déplacer';
+     btn.onclick=()=>{if(typeof window.ecoleMoveCategory14==='function')window.ecoleMoveCategory14(cat);else alert('Fonction Déplacer indisponible : aucune donnée modifiée.')};
+     card.insertBefore(btn,folder);
+   });
  }
- let scheduled=false;
- function tick(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;try{injectAdmin();injectTeacher()}catch(err){console.warn('Bêta 18 affichage',err)}})}
+ let pending=false;
+ function tick(){if(pending)return;pending=true;queueMicrotask(()=>{pending=false;try{injectAdmin();
+   // Re-render only when entering a profile page, not after every DOM change.
+   const grid=document.querySelector('#grid.parent220');
+   if(grid && !grid.querySelector('.ecole19-profile-access'))injectTeacher();
+ }catch(e){console.warn('Bêta 19',e)}})}
  new MutationObserver(tick).observe(document.body,{subtree:true,childList:true});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',tick);else tick();
 })();
 </script>
+<style id="ecole19-style">
+.ecole19-profile-access{background:#f5f8ff;border:1px solid #c5d5ee;border-radius:15px;padding:16px;margin:16px 0}
+.ecole19-toggle-label{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:750;cursor:pointer}
+.ecole19-toggle-label input{height:21px;width:21px;accent-color:#278655}
+.ecole19-status{font-size:13px;color:#3c4f68;margin:10px 0 3px}
+.ecole19-note{font-size:12px;color:#687790;margin:4px 0}
+</style>
 </body></html>
