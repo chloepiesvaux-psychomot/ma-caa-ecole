@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b2a4a">
-<title>Ma CAA École — Bêta 19</title>
+<title>Ma CAA École — Bêta 20</title>
 <style>
 :root{--navy:#0b2a4a;--purple:#7042c1;--green:#2eaf58;--red:#ee4e45;--yellow:#ffd85a;--bg:#f5f7fb;--line:#dfe4ec}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:#111827}button,input{font:inherit}
@@ -233,7 +233,7 @@ function adminReturnToPictogramsStable(scrollY){
 <section class="content">
 <div class="head"><div><h1 id="title">Favoris</h1></div><input id="search" class="search" placeholder="🔎 Rechercher…"></div>
 <div class="starters"><strong>Débuts de phrase</strong><div id="starterrow" class="starterrow"></div></div>
-<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 19</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
+<div id="grid" class="grid"></div><div style="text-align:center;font-size:11px;color:#8b93a1;margin-top:10px">Ma CAA École — Bêta 20</div><div class="credit">Pictogrammes à ajouter depuis le mode Administrateur</div>
 </section></main></div>
 <div class="bottom"><button id="cats">☰ Catégories</button><button class="speak" id="speak2">🔊 Parler</button><button class="clear" id="clear2">🗑 Effacer</button></div>
 <div id="feedback" class="feedback"></div><div id="drawer" class="drawer"><div class="sheet"><button class="x" id="close">✕</button><h2>Catégories</h2><nav id="nav2" class="nav"></nav></div></div>
@@ -8740,7 +8740,17 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const s=section195();s.innerHTML="<h2>⚙️ Paramètres</h2><p>"+adminBaseUpdatedLabel()+"<br>"+adminSyncLabel()+"</p>";
     const pin=document.createElement("button");pin.textContent="🔑 Changer le code administrateur";pin.style.cssText="padding:11px 14px;border:0;border-radius:11px;font-weight:900";
     pin.onclick=()=>{const cur=prompt("Code actuel :");if(cur===null)return;if(cur!==getAdminPin())return alert("Code incorrect.");const n=prompt("Nouveau code (4 chiffres) :");if(n===null)return;if(!/^[0-9]{4}$/.test(n))return alert("4 chiffres requis.");localStorage.setItem(ADMIN_PIN_KEY,n);alert("✓ Code modifié.")};
-    s.appendChild(pin);body.appendChild(s);
+    s.appendChild(pin);
+    const storage=document.createElement('section');storage.style.cssText='margin-top:20px;padding:14px;border:1px solid #d9e3f0;border-radius:12px';
+    storage.innerHTML='<h3>💾 Diagnostic et sauvegarde — Bêta 20</h3><p style="font-size:13px">Avant toute migration, exporter les données locales de cet appareil. Aucune donnée n’est supprimée.</p>';
+    const stat=document.createElement('div');stat.style.cssText='margin:9px 0;font-size:14px';
+    const data=[];let bytes=0;for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i),v=localStorage.getItem(k)||'';const size=2*(k.length+v.length);bytes+=size;data.push({key:k,size});}
+    data.sort((a,b)=>b.size-a.size);
+    stat.textContent='localStorage estimé : '+(bytes/1048576).toFixed(2)+' Mio. Principales clés : '+data.slice(0,4).map(x=>x.key+' ('+(x.size/1048576).toFixed(2)+' Mio)').join(', ');
+    const exportButton=document.createElement('button');exportButton.type='button';exportButton.textContent='⬇️ Exporter les données locales (JSON)';
+    exportButton.onclick=()=>{try{const entries={};for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);entries[key]=localStorage.getItem(key)}const payload={format:'ma-caa-ecole-local-backup-v20',createdAt:new Date().toISOString(),origin:location.origin,localStorage:entries,notice:'Les fichiers audio/images IndexedDB sont sauvegardés séparément.'};const blob=new Blob([JSON.stringify(payload)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Ma_CAA_Ecole_sauvegarde_locale_'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)}catch(err){alert('Échec export : '+String(err))}};
+    const warning=document.createElement('p');warning.style.cssText='font-size:12px;color:#974000';warning.textContent='Attention : ce premier export ne contient PAS les blobs IndexedDB (images/sons). Ne vide pas Safari et ne considère pas cet export comme une sauvegarde complète.';
+    storage.append(stat,exportButton,warning);s.appendChild(storage);body.appendChild(s);
   }
 
 
@@ -8811,56 +8821,53 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     return '<span style="font-size:28px;line-height:1">'+em+'</span>';
   }
 
+  // BETA20: UNE arborescence réelle pour visibilité et ordre.
+  function treeStructure20(cat){
+    const subs=adminSubs251(cat),map=new Map(subs.map(sc=>[String(sc.id),sc]));
+    const children=new Map();subs.forEach(sc=>{const parent=map.has(String(sc.parentId||''))?String(sc.parentId):'';if(!children.has(parent))children.set(parent,[]);children.get(parent).push(sc)});
+    const entries=adminPermanentEntries(cat),entryMap=new Map(entries.map(e=>[String(e.id),e]));
+    const assigned=new Set();const direct=new Map();
+    subs.forEach(sc=>{const items=(sc.itemIds||[]).map(String).map(id=>entryMap.get(id)).filter(Boolean);direct.set(String(sc.id),items);items.forEach(e=>assigned.add(String(e.id)))});
+    direct.set('',entries.filter(e=>!assigned.has(String(e.id))));
+    return {subs,children,direct};
+  }
+  function sortEntries20(items,ids){const m=new Map(items.map(e=>[String(e.id),e])),result=[];(ids||[]).forEach(id=>{id=String(id);if(m.has(id)){result.push(m.get(id));m.delete(id)}});m.forEach(e=>result.push(e));return result}
+  function treeTools20(host,nodes){
+    const t=document.createElement('div');t.className='adm251-tools';
+    const op=document.createElement('button');op.textContent='▾ Tout ouvrir';
+    const cl=document.createElement('button');cl.textContent='▸ Tout fermer';
+    op.onclick=()=>nodes.forEach(n=>n.set(true));cl.onclick=()=>nodes.forEach(n=>n.set(false));
+    t.append(op,cl);host.appendChild(t);
+    const tree=document.createElement('div');tree.className='adm251-tree';host.appendChild(tree);return tree;
+  }
   function renderVisibility251(host){
-    const tools=document.createElement("div");tools.className="adm251-tools";
-    const op=document.createElement("button");op.textContent="▾ Tout ouvrir";
-    const cl=document.createElement("button");cl.textContent="▸ Tout fermer";
-    tools.append(op,cl);host.appendChild(tools);
-    const tree=document.createElement("div");tree.className="adm251-tree";host.appendChild(tree);
-    const nodes=[];
-
+    const nodes=[];const tree=treeTools20(host,nodes);
     adminCats251().forEach(cat=>{
-      const cn=lazyNode252((adminCatIcon(cat)||cat.icon||"📁")+" "+adminCatName(cat),"vcat:"+cat.name,0,body=>{
-        let base=readAdminBase();
-        const cv=check251("Afficher la catégorie",!(base.hiddenCats||[]).includes(cat.name),on=>{
-          const b=readAdminBase();b.hiddenCats=Array.isArray(b.hiddenCats)?b.hiddenCats:[];
-          b.hiddenCats=b.hiddenCats.filter(v=>v!==cat.name);if(!on)b.hiddenCats.push(cat.name);
-          writeAdminBase(b);render();
-        });cv.classList.add("adm251-master");body.appendChild(cv);
-
-        const entries=adminPermanentEntries(cat),entryMap=new Map(entries.map(e=>[String(e.id),e]));
-        adminSubs251(cat).forEach(sc=>{
-          const sn=lazyNode252((sc.icon||"📁")+" "+adminSubcatPath(sc),"vsub:"+sc.id,1,sbody=>{
-            const fresh=(readAdminBase().subcategories||[]).find(x=>String(x.id)===String(sc.id))||sc;
-            const sv=check251("Afficher cette sous-catégorie",!fresh.hidden,on=>{
-              const b=readAdminBase(),t=(b.subcategories||[]).find(x=>String(x.id)===String(sc.id));if(t)t.hidden=!on;writeAdminBase(b);renderGrid();
-            });sv.classList.add("adm251-master");sbody.appendChild(sv);
-            adminSubcatItemsDeep(sc).map(String).forEach(id=>{
-              const e=entryMap.get(id);if(!e)return;
-              const loc=readAdminBase().locationHiddenV213||{cats:{},subs:{}};
-              sbody.appendChild(check251(e.label,!arrHas251(loc.subs||{},sc.id,e.id),on=>{
-                const bb=readAdminBase(),v=bb.locationHiddenV213||{cats:{},subs:{}};v.cats=v.cats||{};v.subs=v.subs||{};
-                arrSet251(v.subs,sc.id,e.id,!on);bb.locationHiddenV213=v;bb.hiddenItems=(bb.hiddenItems||[]).filter(x=>String(x)!==String(e.id));
-                if(e.kind==="added"){const it=(bb.addedItems||[]).find(x=>String(x.id)===String(e.id));if(it)it.hidden=false}writeAdminBase(bb);renderGrid();
-              },emojiThumb252(e)));
-            });
-          });nodes.push(sn);body.appendChild(sn.n);
-        });
-
-        const an=lazyNode252("🖼️ Tous les pictogrammes de "+adminCatName(cat),"vall:"+cat.name,1,abody=>{
-          entries.forEach(e=>{
+      const data=treeStructure20(cat), cn=lazyNode252((adminCatIcon(cat)||cat.icon||'📁')+' '+adminCatName(cat),'v20cat:'+cat.name,0,body=>{
+        const b=readAdminBase();
+        const main=check251('Afficher la catégorie',!(b.hiddenCats||[]).includes(cat.name),on=>{const a=readAdminBase();a.hiddenCats=(a.hiddenCats||[]).filter(n=>n!==cat.name);if(!on)a.hiddenCats.push(cat.name);writeAdminBase(a)});
+        main.classList.add('adm251-master');body.appendChild(main);
+        const addItems=(parent,target,level)=>{
+          (data.direct.get(parent)||[]).forEach(e=>{
             const loc=readAdminBase().locationHiddenV213||{cats:{},subs:{}};
-            abody.appendChild(check251(e.label,!arrHas251(loc.cats||{},cat.name,e.id),on=>{
-              const bb=readAdminBase(),v=bb.locationHiddenV213||{cats:{},subs:{}};v.cats=v.cats||{};v.subs=v.subs||{};
-              arrSet251(v.cats,cat.name,e.id,!on);bb.locationHiddenV213=v;bb.hiddenItems=(bb.hiddenItems||[]).filter(x=>String(x)!==String(e.id));
-              if(e.kind==="added"){const it=(bb.addedItems||[]).find(x=>String(x.id)===String(e.id));if(it)it.hidden=false}writeAdminBase(bb);renderGrid();
+            const scope=parent?'subs':'cats',key=parent||cat.name;
+            target.appendChild(check251(e.label,!arrHas251(loc[scope]||{},key,e.id),on=>{
+              const a=readAdminBase(),v=a.locationHiddenV213||{cats:{},subs:{}};v.cats=v.cats||{};v.subs=v.subs||{};
+              arrSet251(v[scope],key,e.id,!on);a.locationHiddenV213=v;writeAdminBase(a);
             },emojiThumb252(e)));
           });
-        });nodes.push(an);body.appendChild(an.n);
-      });
-      nodes.push(cn);tree.appendChild(cn.n);
+          (data.children.get(parent)||[]).forEach(sc=>{
+            const sn=lazyNode252((sc.icon||'📁')+' '+sc.name,'v20sub:'+sc.id,Math.min(level,7),inner=>{
+              const fresh=(readAdminBase().subcategories||[]).find(x=>String(x.id)===String(sc.id))||sc;
+              const check=check251('Afficher ce dossier',!fresh.hidden,on=>{const a=readAdminBase(),t=(a.subcategories||[]).find(x=>String(x.id)===String(sc.id));if(t)t.hidden=!on;writeAdminBase(a)});
+              check.classList.add('adm251-master');inner.appendChild(check);
+              addItems(String(sc.id),inner,level+1);
+            });nodes.push(sn);target.appendChild(sn.n);
+          });
+        };
+        addItems('',body,1);
+      });nodes.push(cn);tree.appendChild(cn.n);
     });
-    op.onclick=()=>nodes.forEach(n=>n.set(true));cl.onclick=()=>nodes.forEach(n=>n.set(false));
   }
 
   function dragRows251(wrap,onSave){
@@ -8887,72 +8894,77 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
 
   function renderOrder251(host){
-    const note=document.createElement("div");note.className="adm251-note";note.textContent="☰ Fais glisser pour modifier l’ordre. L’enregistrement est automatique.";host.appendChild(note);
-    const tools=document.createElement("div");tools.className="adm251-tools";
-    const op=document.createElement("button");op.textContent="▾ Tout ouvrir";
-    const cl=document.createElement("button");cl.textContent="▸ Tout fermer";tools.append(op,cl);host.appendChild(tools);
-    const tree=document.createElement("div");tree.className="adm251-tree";host.appendChild(tree);const nodes=[];
-
-    const catNode=lazyNode252("📚 Ordre des catégories","ocat:all",0,body=>{
-      const w=document.createElement("div");w.className="adm251-dragwrap";
-      adminCats251().forEach(cat=>w.appendChild(dragRow251(cat.name,(adminCatIcon(cat)||cat.icon||"📁")+" "+adminCatName(cat))));body.appendChild(w);
-      dragRows251(w,ids=>{const b=readAdminBase();b.adminCategoryOrderV251=ids;writeAdminBase(b);render()});
-    });nodes.push(catNode);tree.appendChild(catNode.n);
-
-    adminCats251().forEach(cat=>{
-      const cn=lazyNode252((adminCatIcon(cat)||cat.icon||"📁")+" "+adminCatName(cat),"ocat:"+cat.name,0,body=>{
-        const subs=adminSubs251(cat),byParent={};subs.forEach(sc=>{const k=String(sc.parentId||"");(byParent[k]||(byParent[k]=[])).push(sc)});
-        Object.entries(byParent).forEach(([parentId,list])=>{
-          if(!list.length)return;const parent=parentId?subs.find(s=>String(s.id)===String(parentId)):null;
-          const sn=lazyNode252("📁 Ordre "+(parent?("dans "+parent.name):"des sous-catégories"),"osubs:"+cat.name+":"+parentId,1,sbody=>{
-            const w=document.createElement("div");w.className="adm251-dragwrap";
-            list.sort((a,b)=>(a.order||0)-(b.order||0)).forEach(sc=>w.appendChild(dragRow251(sc.id,(sc.icon||"📁")+" "+sc.name)));sbody.appendChild(w);
-            dragRows251(w,ids=>{const b=readAdminBase();ids.forEach((id,i)=>{const t=(b.subcategories||[]).find(x=>String(x.id)===String(id));if(t)t.order=i});writeAdminBase(b);renderGrid()});
-          });nodes.push(sn);body.appendChild(sn.n);
-        });
-
-        const entries=adminPermanentEntries(cat),emap=new Map(entries.map(e=>[String(e.id),e]));
-        subs.forEach(sc=>{
-          const sn=lazyNode252((sc.icon||"📁")+" "+adminSubcatPath(sc)+" — pictogrammes","opsub:"+sc.id,1,sbody=>{
-            const b0=readAdminBase(),saved=(b0.adminSubOrderV252||{})[String(sc.id)]||[];
-            let direct=(sc.itemIds||[]).map(String).map(id=>emap.get(id)).filter(Boolean);
-            if(saved.length){const m=new Map(direct.map(e=>[String(e.id),e])),o=[];saved.forEach(id=>{id=String(id);if(m.has(id)){o.push(m.get(id));m.delete(id)}});m.forEach(e=>o.push(e));direct=o}
-            const w=document.createElement("div");w.className="adm251-dragwrap";
-            direct.forEach(e=>w.appendChild(dragRow251(e.id,e.label,emojiThumb252(e))));sbody.appendChild(w);
-            dragRows251(w,ids=>{
-              const b=readAdminBase();
-              b.adminSubOrderV252=b.adminSubOrderV252||{};
-              b.adminSubOrderUpdatedV253=b.adminSubOrderUpdatedV253||{};
-              b.adminSubOrderV252[String(sc.id)]=ids;
-              b.adminSubOrderUpdatedV253[String(sc.id)]=Date.now();
-              b.adminSubOrderUpdatedV265=b.adminSubOrderUpdatedV265||{};
-              b.adminSubOrderUpdatedV265[String(sc.id)]=Date.now();
-              writeAdminBase(b);
-              try{scheduleAdminBasePush()}catch(e){}
-              renderGrid();
-            });
-          });nodes.push(sn);body.appendChild(sn.n);
-        });
-
-        const an=lazyNode252("↕️ Tous les pictogrammes de "+adminCatName(cat),"opall:"+cat.name,1,abody=>{
-          const current=adminPermanentEntries(cat),w=document.createElement("div");w.className="adm251-dragwrap";
-          current.forEach(e=>w.appendChild(dragRow251(e.id,e.label,emojiThumb252(e))));abody.appendChild(w);
-          dragRows251(w,ids=>{
-            const b=readAdminBase();
-            b.adminOrder=b.adminOrder||{};
-            b.adminOrderUpdatedV265=b.adminOrderUpdatedV265||{};
-            b.adminOrder[cat.name]=ids;
-            b.adminOrderUpdatedV265[cat.name]=Date.now();
-            writeAdminBase(b);
-            try{scheduleAdminBasePush()}catch(e){}
-            renderGrid();
-          });
-        });nodes.push(an);body.appendChild(an.n);
-      });nodes.push(cn);tree.appendChild(cn.n);
+    const note=document.createElement('div');note.className='adm251-note';note.textContent='☰ Déplace les dossiers ou pictogrammes à leur niveau ; ouvre/ferme avec ▸ et ▾.';host.appendChild(note);
+    const tree=document.createElement('div');tree.className='adm251-tree';host.appendChild(tree);
+    const allNodes=[];
+    const toolbar=document.createElement('div');toolbar.className='adm251-tools';
+    const op=document.createElement('button');op.textContent='▾ Tout ouvrir';const cl=document.createElement('button');cl.textContent='▸ Tout fermer';
+    toolbar.append(op,cl);host.insertBefore(toolbar,tree);
+    op.onclick=()=>allNodes.forEach(n=>n.set(true));cl.onclick=()=>allNodes.forEach(n=>n.set(false));
+    const persist=(ids,kind,context)=>{
+      const a=readAdminBase();
+      if(kind==='cats')a.adminCategoryOrderV251=ids;
+      else if(kind==='folders')ids.forEach((id,i)=>{const sc=(a.subcategories||[]).find(x=>String(x.id)===String(id));if(sc)sc.order=i});
+      else if(kind==='root'){a.adminOrder=a.adminOrder||{};const old=a.adminOrder[context.cat]||[];a.adminOrder[context.cat]=[...ids,...old.filter(id=>!ids.includes(String(id)))]}
+      else if(kind==='pictos'){
+        a.adminSubOrderV252=a.adminSubOrderV252||{};a.adminSubOrderV252[context.id]=ids;
+        a.adminSubOrderUpdatedV265=a.adminSubOrderUpdatedV265||{};a.adminSubOrderUpdatedV265[context.id]=Date.now();
+      }
+      try{writeAdminBase(a);renderGrid()}catch(e){alert('Enregistrement impossible : stockage saturé. Conserve ta sauvegarde.')}
+    };
+    const dragContainer=(wrap,kind,context)=>{
+      let dragging=null;
+      const rows=()=>[...wrap.children].filter(e=>e.dataset&&e.dataset.id);
+      rows().forEach(row=>{
+        row.draggable=true;
+        row.addEventListener('dragstart',e=>{dragging=row;row.style.opacity='.45';try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',row.dataset.id)}catch(_){}});
+        row.addEventListener('dragover',e=>{e.preventDefault();if(!dragging||dragging===row)return;const r=row.getBoundingClientRect();wrap.insertBefore(dragging,e.clientY>r.top+r.height/2?row.nextSibling:row)});
+        row.addEventListener('dragend',()=>{if(!dragging)return;dragging.style.opacity='';dragging=null;persist(rows().map(x=>x.dataset.id),kind,context)});
+        const grip=row.querySelector(':scope > .e20-line > .e20-grip');if(!grip)return;
+        let active=false,pid=null;
+        grip.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;active=true;pid=e.pointerId;try{grip.setPointerCapture(pid)}catch(_){}});
+        grip.addEventListener('pointermove',e=>{if(!active||e.pointerId!==pid)return;e.preventDefault();const hit=document.elementFromPoint(e.clientX,e.clientY)?.closest('.e20-node');if(!hit||hit===row||hit.parentElement!==wrap)return;const rect=hit.getBoundingClientRect();wrap.insertBefore(row,e.clientY>rect.top+rect.height/2?hit.nextSibling:hit)});
+        const end=e=>{if(!active||e.pointerId!==pid)return;active=false;persist(rows().map(x=>x.dataset.id),kind,context)};
+        grip.addEventListener('pointerup',end);grip.addEventListener('pointercancel',end);
+      });
+    };
+    const folderRow=(id,label,depth,key,builder)=>{
+      const n=document.createElement('div');n.className='e20-node';n.dataset.id=String(id);
+      const line=document.createElement('div');line.className='e20-line';line.style.paddingLeft=(10+depth*22)+'px';
+      const grip=document.createElement('span');grip.className='e20-grip';grip.textContent='☰';grip.title='Glisser pour réordonner';
+      const arrow=document.createElement('button');arrow.type='button';arrow.className='e20-arrow';arrow.textContent='▸';
+      const text=document.createElement('span');text.textContent=label;text.style.fontWeight='700';
+      const child=document.createElement('div');child.className='e20-children';let built=false;
+      const set=on=>{open251[key]=!!on;arrow.textContent=on?'▾':'▸';child.hidden=!on;if(on&&!built){built=true;builder(child)}};
+      arrow.onclick=()=>set(!open251[key]);line.append(grip,arrow,text);n.append(line,child);allNodes.push({set});set(!!open251[key]);return n;
+    };
+    const addPictoRows=(target,list,depth,kind,context)=>{
+      if(!list.length)return;
+      const wrap=document.createElement('div');wrap.className='e20-rows';
+      list.forEach(e=>{const node=document.createElement('div');node.className='e20-node';node.dataset.id=String(e.id);
+        const line=document.createElement('div');line.className='e20-line';line.style.paddingLeft=(10+depth*22)+'px';
+        const grip=document.createElement('span');grip.className='e20-grip';grip.textContent='☰';const pic=document.createElement('span');pic.innerHTML=emojiThumb252(e);const label=document.createElement('span');label.textContent=e.label;
+        line.append(grip,pic,label);node.appendChild(line);wrap.appendChild(node)});
+      target.appendChild(wrap);dragContainer(wrap,kind,context);
+    };
+    const buildFolderLevel=(target,data,cat,parent,depth,seen)=>{
+      const items=data.direct.get(parent)||[];
+      const order=parent?(readAdminBase().adminSubOrderV252||{})[parent]||[]:(readAdminBase().adminOrder||{})[cat.name]||[];
+      addPictoRows(target,sortEntries20(items,order),depth,parent?'pictos':'root',{id:parent,cat:cat.name});
+      const kids=data.children.get(parent)||[];
+      const wrap=document.createElement('div');wrap.className='e20-rows';target.appendChild(wrap);
+      kids.forEach(sc=>{
+        if(seen.has(String(sc.id)))return;
+        wrap.appendChild(folderRow(sc.id,(sc.icon||'📁')+' '+sc.name,depth,'o20sub:'+sc.id,inside=>buildFolderLevel(inside,data,cat,String(sc.id),depth+1,new Set([...seen,String(sc.id)]))));
+      });
+      dragContainer(wrap,'folders',{});
+    };
+    const catWrap=document.createElement('div');catWrap.className='e20-rows';tree.appendChild(catWrap);
+    adminCats251().forEach(cat=>{const data=treeStructure20(cat);
+      catWrap.appendChild(folderRow(cat.name,(adminCatIcon(cat)||cat.icon||'📁')+' '+adminCatName(cat),0,'o20cat:'+cat.name,inner=>buildFolderLevel(inner,data,cat,'',1,new Set())));
     });
-    op.onclick=()=>nodes.forEach(n=>n.set(true));cl.onclick=()=>nodes.forEach(n=>n.set(false));
+    dragContainer(catWrap,'cats',{});
   }
-
   function renderCustomize251(body){
     setTitle195("Personnaliser la vue");
     const s=section195();
@@ -14190,4 +14202,4 @@ window.adminEditCategory=adminEditCategory;
 .ecole19-status{font-size:13px;color:#3c4f68;margin:10px 0 3px}
 .ecole19-note{font-size:12px;color:#687790;margin:4px 0}
 </style>
-</body></html>
+<style id="ecole-beta20-order-css">.e20-node{border-bottom:1px solid #e6edf5;background:#fff}.e20-line{display:flex;align-items:center;gap:8px;min-height:46px;padding:6px 10px}.e20-node>.e20-children{border-left:2px solid #e3e9f4;margin-left:24px}.e20-grip{font-size:20px;color:#65758d;padding:3px 8px;cursor:grab;touch-action:none;user-select:none}.e20-arrow{border:0;background:#edf3fc;border-radius:7px;min-width:31px;height:31px;cursor:pointer;font-weight:800}.e20-node:has(>.e20-children){background:#f9fbfe}.e20-rows{width:100%}</style></body></html>
